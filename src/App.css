@@ -1,23 +1,15 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   background: #0a0f2c;
   color: #e0e8ff;
   font-family: 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 .page {
   position: relative;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .bg {
@@ -35,26 +27,171 @@ body {
   user-select: none;
 }
 
-.content {
+/* ── Main layout ── */
+.main {
   position: relative;
   z-index: 10;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Hero card ── */
+.hero-card {
   text-align: center;
   background: rgba(10, 15, 44, 0.75);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(126, 184, 255, 0.2);
-  border-radius: 20px;
-  padding: 3rem 4rem;
+  border-radius: 16px;
+  padding: 2rem 3rem;
 }
 
-.content h1 {
+.hero-card h1 {
   font-size: 2rem;
   font-weight: 700;
   color: #7eb8ff;
   letter-spacing: 0.3em;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-.content p {
-  font-size: 1.2rem;
+.hero-card p {
+  font-size: 1rem;
   color: #4a6fa5;
+}
+
+/* ── Grade bar ── */
+.grade-bar {
+  background: rgba(10, 15, 44, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(126, 184, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.grade-label {
+  color: #7eb8ff;
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.grade-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.grade-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #1e2f6e;
+  background: #111a3e;
+  color: #7eb8ff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.grade-btn:hover {
+  border-color: #4a7fff;
+  background: #1a2a5e;
+}
+
+.grade-btn.active {
+  background: #4a7fff;
+  border-color: #4a7fff;
+  color: #fff;
+}
+
+/* ── Lessons ── */
+.lessons-title {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #64ffb4;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.lesson-card {
+  background: #111a3e;
+  border: 1px solid #1e2f6e;
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.lesson-topic {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #a5c8ff;
+}
+
+.lesson-desc {
+  font-size: 0.85rem;
+  color: #4a6fa5;
+  line-height: 1.4;
+}
+
+.problems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.problem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: rgba(10, 15, 44, 0.5);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.problem-q {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #e0e8ff;
+}
+
+.problem-a {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #64ffb4;
+  font-weight: 700;
+}
+
+.reveal-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #4a7fff;
+  background: transparent;
+  color: #7eb8ff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.reveal-btn:hover {
+  background: #4a7fff;
+  color: #fff;
 }
