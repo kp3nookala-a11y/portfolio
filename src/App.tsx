@@ -66,7 +66,7 @@ function App() {
       </div>
       <div className="content">
         <h1>A+ Mathematics</h1>
-        <p>Welcome to my portfolio</p>
+        <p>A website that helps you get ahead in Math!!!</p>
       </div>
     </div>
   )
