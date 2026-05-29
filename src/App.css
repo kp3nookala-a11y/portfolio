@@ -9,69 +9,52 @@ body {
   color: #e0e8ff;
   font-family: 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 2rem;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-header {
+.bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floater {
+  position: absolute;
+  color: #7eb8ff;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.content {
+  position: relative;
+  z-index: 10;
   text-align: center;
-  margin-bottom: 3rem;
+  background: rgba(10, 15, 44, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(126, 184, 255, 0.2);
+  border-radius: 20px;
+  padding: 3rem 4rem;
 }
 
-header h1 {
-  font-size: 3rem;
+.content h1 {
+  font-size: 4rem;
   font-weight: 700;
   color: #7eb8ff;
   letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-header p {
-  font-size: 1.1rem;
+.content p {
+  font-size: 1.2rem;
   color: #4a6fa5;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.card {
-  background: #111a3e;
-  border: 1px solid #1e2f6e;
-  border-radius: 12px;
-  padding: 1.25rem 1rem;
-  text-align: center;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  border-color: #4a7fff;
-}
-
-.question {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #a5c8ff;
-  font-family: 'Courier New', monospace;
-}
-
-.equals {
-  font-size: 1rem;
-  color: #3a5a9a;
-}
-
-.answer {
-  font-size: 1rem;
-  color: #64ffb4;
-  font-family: 'Courier New', monospace;
 }

@@ -1,47 +1,72 @@
+import { useMemo } from 'react'
 import './App.css'
 
-const problems = [
-  { q: '12 × 13', a: '156' },
-  { q: '√144', a: '12' },
-  { q: '∫x² dx', a: 'x³/3 + C' },
-  { q: '7! / 5!', a: '42' },
-  { q: 'log₂(64)', a: '6' },
-  { q: 'sin(90°)', a: '1' },
-  { q: 'd/dx [x³]', a: '3x²' },
-  { q: 'π²', a: '9.87' },
-  { q: '2⁸', a: '256' },
-  { q: 'cos(0°)', a: '1' },
-  { q: '15² - 14²', a: '29' },
-  { q: '∑(1 to 10)', a: '55' },
-  { q: 'tan(45°)', a: '1' },
-  { q: '√(3² + 4²)', a: '5' },
-  { q: '99 × 99', a: '9801' },
-  { q: 'e⁰', a: '1' },
-  { q: '11³', a: '1331' },
-  { q: 'GCD(48, 18)', a: '6' },
-  { q: '0.1 + 0.2', a: '≈0.3' },
-  { q: '∞ / ∞', a: 'indeterminate' },
-  { q: 'φ (golden ratio)', a: '1.618...' },
-  { q: '100!', a: 'very big' },
-  { q: 'lim x→0 sin(x)/x', a: '1' },
-  { q: '13 mod 5', a: '3' },
+const expressions = [
+  '12 × 13 = 156', '√144 = 12', '∫x² dx', '7! = 5040', 'log₂(64) = 6',
+  'sin(90°) = 1', 'd/dx[x³] = 3x²', 'π² ≈ 9.87', '2⁸ = 256', 'cos(0°) = 1',
+  '15² - 14² = 29', '∑(1..10) = 55', 'tan(45°) = 1', '√(9+16) = 5',
+  '99² = 9801', 'e⁰ = 1', '11³ = 1331', 'GCD(48,18) = 6', '0.1+0.2 ≈ 0.3',
+  'lim sin(x)/x = 1', 'φ = 1.618...', 'i² = -1', 'e^iπ + 1 = 0',
+  '∇²f = 0', 'P(A∪B)', 'n! / r!(n-r)!', 'a² + b² = c²', 'F = ma',
+  'E = mc²', 'λ = h/p', '∮E·dA = Q/ε₀', 'PV = nRT', 'det(AB) = det(A)det(B)',
+  'tr(A+B) = tr(A)+tr(B)', '||v|| = √(x²+y²+z²)', 'A⁻¹A = I',
+  'sin²θ + cos²θ = 1', '1 + tan²θ = sec²θ', 'cot²θ + 1 = csc²θ',
+  'ln(e) = 1', 'log(1) = 0', '∫₀^∞ e^-x dx = 1', "f'(x) = lim[f(x+h)-f(x)]/h",
+  '13 mod 5 = 3', '2+2 = 4', '7×8 = 56', '144/12 = 12', '3³ = 27',
+  '√81 = 9', '5! = 120', '64^(1/2) = 8', '∑n² = n(n+1)(2n+1)/6',
+  '∑n = n(n+1)/2', 'C(10,3) = 120', 'P(5,2) = 20', '17 is prime',
+  'lcm(4,6) = 12', 'gcd(100,75) = 25', '1000 = 10³', 'log₁₀(1000) = 3',
+  'sin(30°) = 0.5', 'cos(60°) = 0.5', 'tan(0°) = 0', 'arcsin(1) = π/2',
+  '∞ + 1 = ∞', '0! = 1', '(-1)² = 1', '√-1 = i', '|−5| = 5',
+  'floor(3.9) = 3', 'ceil(3.1) = 4', '101 is prime', '2^10 = 1024',
+  'hex FF = 255', 'bin 1010 = 10', '∫cos(x) dx = sin(x) + C',
+  '∫sin(x) dx = -cos(x) + C', 'd/dx[eˣ] = eˣ', 'd/dx[ln x] = 1/x',
+  'lim x→∞ 1/x = 0', 'x²-1 = (x+1)(x-1)', 'quadratic: (-b±√Δ)/2a',
 ]
 
+function seededRandom(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff
+    return (s >>> 0) / 0xffffffff
+  }
+}
+
 function App() {
+  const floaters = useMemo(() => {
+    const rand = seededRandom(42)
+    return Array.from({ length: 200 }, (_, i) => ({
+      text: expressions[i % expressions.length],
+      top: rand() * 100,
+      left: rand() * 100,
+      opacity: 0.04 + rand() * 0.13,
+      size: 0.65 + rand() * 0.7,
+      rotate: -25 + rand() * 50,
+    }))
+  }, [])
+
   return (
     <div className="page">
-      <header>
+      <div className="bg">
+        {floaters.map((f, i) => (
+          <span
+            key={i}
+            className="floater"
+            style={{
+              top: `${f.top}%`,
+              left: `${f.left}%`,
+              opacity: f.opacity,
+              fontSize: `${f.size}rem`,
+              transform: `rotate(${f.rotate}deg)`,
+            }}
+          >
+            {f.text}
+          </span>
+        ))}
+      </div>
+      <div className="content">
         <h1>Hello World</h1>
         <p>Welcome to my portfolio</p>
-      </header>
-      <div className="grid">
-        {problems.map((p, i) => (
-          <div className="card" key={i}>
-            <div className="question">{p.q}</div>
-            <div className="equals">=</div>
-            <div className="answer">{p.a}</div>
-          </div>
-        ))}
       </div>
     </div>
   )
