@@ -192,6 +192,190 @@ function MathGame({ onClose }: { onClose: () => void }) {
   )
 }
 
+// ── AI Study Mode ──────────────────────────────────────────
+const topics: Record<number, string[]> = {
+  1: ['Addition', 'Subtraction', 'Skip Counting'],
+  2: ['Multiplication', 'Fractions', 'Place Value'],
+  3: ['Long Multiplication', 'Division', 'Area & Perimeter'],
+  4: ['Fractions & Decimals', 'Adding Fractions', 'Multi-digit Multiplication'],
+  5: ['Ratios', 'Negative Numbers', 'Variables'],
+  6: ['Linear Equations', 'Angles', 'Probability'],
+  7: ['Systems of Equations', 'Exponent Rules', 'Pythagorean Theorem'],
+  8: ['Quadratic Equations', 'Functions', 'Inequalities'],
+  9: ['Trigonometry', 'Circle Theorems', 'Logic & Proofs'],
+  10: ['Logarithms', 'Complex Numbers', 'Sequences & Series'],
+  11: ['Limits', 'Vectors', 'Polar Coordinates'],
+  12: ['Derivatives', 'Integrals', 'Chain Rule'],
+}
+
+type AIProblem = {
+  question: string
+  answer: string
+  hint: string
+  explanation: string
+}
+
+type AIFeedback = {
+  correct: boolean
+  feedback: string
+  tip: string
+}
+
+function StudyMode({ onCorrect }: { onCorrect: () => void }) {
+  const [grade, setGrade] = useState<number>(6)
+  const [topic, setTopic] = useState<string>(topics[6][0])
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
+  const [problem, setProblem] = useState<AIProblem | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [input, setInput] = useState('')
+  const [feedback, setFeedback] = useState<AIFeedback | null>(null)
+  const [showHint, setShowHint] = useState(false)
+  const [checkingAnswer, setCheckingAnswer] = useState(false)
+  const [streak, setStreak] = useState(0)
+  const [previousQuestions, setPreviousQuestions] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  async function generateProblem() {
+    setLoading(true)
+    setError(null)
+    setProblem(null)
+    setFeedback(null)
+    setInput('')
+    setShowHint(false)
+    try {
+      const res = await fetch('/api/study', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grade, topic, difficulty, previousQuestions }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setProblem(data)
+      setPreviousQuestions(prev => [...prev, data.question])
+    } catch (e: any) {
+      setError(e.message || 'Failed to generate problem. Make sure ANTHROPIC_API_KEY is set.')
+    }
+    setLoading(false)
+  }
+
+  async function checkAnswer() {
+    if (!problem || !input.trim()) return
+    setCheckingAnswer(true)
+    setFeedback(null)
+    try {
+      const res = await fetch('/api/study', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grade, topic, difficulty, previousQuestions,
+          checkAnswer: { question: problem.question, userAnswer: input, correctAnswer: problem.answer }
+        }),
+      })
+      const data: AIFeedback = await res.json()
+      setFeedback(data)
+      if (data.correct) {
+        onCorrect()
+        setStreak(s => s + 1)
+      } else {
+        setStreak(0)
+      }
+    } catch {
+      setFeedback({ correct: false, feedback: 'Could not check answer.', tip: '' })
+    }
+    setCheckingAnswer(false)
+  }
+
+  return (
+    <div className="study-mode">
+      <div className="study-controls">
+        <div className="study-control-group">
+          <label>Grade</label>
+          <select className="study-select" value={grade} onChange={e => { setGrade(+e.target.value); setTopic(topics[+e.target.value][0]) }}>
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map(g => <option key={g} value={g}>Grade {g}</option>)}
+          </select>
+        </div>
+        <div className="study-control-group">
+          <label>Topic</label>
+          <select className="study-select" value={topic} onChange={e => setTopic(e.target.value)}>
+            {topics[grade].map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="study-control-group">
+          <label>Difficulty</label>
+          <div className="diff-btns">
+            {(['easy','medium','hard'] as const).map(d => (
+              <button key={d} className={`diff-btn ${difficulty === d ? 'active-'+d : ''}`} onClick={() => setDifficulty(d)}>
+                {d === 'easy' ? '🟢' : d === 'medium' ? '🟡' : '🔴'} {d}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button className="gen-btn" onClick={generateProblem} disabled={loading}>
+          {loading ? '⏳ Generating...' : '🤖 Generate Problem'}
+        </button>
+      </div>
+
+      {streak > 1 && <div className="streak-banner">🔥 {streak} in a row!</div>}
+
+      {error && <div className="study-error">⚠️ {error}</div>}
+
+      {problem && !loading && (
+        <div className="study-card">
+          <div className="study-meta">
+            <span className="study-badge">Grade {grade}</span>
+            <span className="study-badge">{topic}</span>
+            <span className={`study-badge diff-${difficulty}`}>{difficulty}</span>
+          </div>
+
+          <div className="study-question">{problem.question}</div>
+
+          {!feedback ? (
+            <>
+              <div className="study-input-row">
+                <input
+                  className="study-input"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && checkAnswer()}
+                  placeholder="Type your answer..."
+                  autoFocus
+                />
+                <button className="study-submit" onClick={checkAnswer} disabled={checkingAnswer || !input.trim()}>
+                  {checkingAnswer ? '⏳' : 'Submit'}
+                </button>
+              </div>
+              {!showHint
+                ? <button className="hint-btn" onClick={() => setShowHint(true)}>💡 Show Hint</button>
+                : <div className="hint-box">💡 {problem.hint}</div>
+              }
+            </>
+          ) : (
+            <div className={`feedback-box ${feedback.correct ? 'correct' : 'wrong'}`}>
+              <div className="feedback-result">{feedback.correct ? '✅ Correct!' : '❌ Not quite'}</div>
+              <div className="feedback-text">{feedback.feedback}</div>
+              {!feedback.correct && (
+                <div className="feedback-answer">Answer: <strong>{problem.answer}</strong></div>
+              )}
+              <div className="feedback-explanation">{problem.explanation}</div>
+              {feedback.tip && <div className="feedback-tip">💡 {feedback.tip}</div>}
+              <button className="gen-btn" onClick={generateProblem} style={{ marginTop: '1rem' }}>
+                Next Problem →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!problem && !loading && !error && (
+        <div className="study-empty">
+          <div className="study-empty-icon">🤖</div>
+          <p>Pick a grade, topic, and difficulty — then hit <strong>Generate Problem</strong> to get an AI-powered math question!</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Problem Component ──────────────────────────────────────
 function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
   const [input, setInput] = useState('')
@@ -242,6 +426,7 @@ export default function App() {
   const [points, setPoints] = useState(0)
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
+  const [tab, setTab] = useState<'lessons' | 'study'>('lessons')
 
   function addPoint() {
     setPoints(p => {
@@ -301,34 +486,48 @@ export default function App() {
           )}
         </div>
 
-        {/* Grade selector */}
-        <div className="grade-bar">
-          <span className="grade-label">What grade are you in?</span>
-          <div className="grade-buttons">
-            {[1,2,3,4,5,6,7,8,9,10,11,12].map(g => (
-              <button key={g} className={`grade-btn ${grade === g ? 'active' : ''}`} onClick={() => setGrade(g === grade ? null : g)}>{g}</button>
-            ))}
-          </div>
+        {/* Tabs */}
+        <div className="tabs">
+          <button className={`tab-btn ${tab === 'lessons' ? 'active' : ''}`} onClick={() => setTab('lessons')}>
+            📚 Lessons
+          </button>
+          <button className={`tab-btn ${tab === 'study' ? 'active' : ''}`} onClick={() => setTab('study')}>
+            🤖 AI Study Mode
+          </button>
         </div>
 
-        {content && (
-          <div className="lessons">
-            <h2 className="lessons-title">{content.label}</h2>
-            <div className="lessons-grid">
-              {content.lessons.map((lesson, i) => (
-                <div className="lesson-card" key={i}>
-                  <div className="lesson-topic">{lesson.topic}</div>
-                  <div className="lesson-desc">{lesson.description}</div>
-                  <div className="problems">
-                    {lesson.problems.map((p, j) => (
-                      <Problem key={`${grade}-${i}-${j}`} q={p.q} a={p.a} onCorrect={addPoint} />
-                    ))}
-                  </div>
-                </div>
-              ))}
+        {tab === 'lessons' && (
+          <>
+            <div className="grade-bar">
+              <span className="grade-label">What grade are you in?</span>
+              <div className="grade-buttons">
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(g => (
+                  <button key={g} className={`grade-btn ${grade === g ? 'active' : ''}`} onClick={() => setGrade(g === grade ? null : g)}>{g}</button>
+                ))}
+              </div>
             </div>
-          </div>
+            {content && (
+              <div className="lessons">
+                <h2 className="lessons-title">{content.label}</h2>
+                <div className="lessons-grid">
+                  {content.lessons.map((lesson, i) => (
+                    <div className="lesson-card" key={i}>
+                      <div className="lesson-topic">{lesson.topic}</div>
+                      <div className="lesson-desc">{lesson.description}</div>
+                      <div className="problems">
+                        {lesson.problems.map((p, j) => (
+                          <Problem key={`${grade}-${i}-${j}`} q={p.q} a={p.a} onCorrect={addPoint} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
+
+        {tab === 'study' && <StudyMode onCorrect={addPoint} />}
       </div>
     </div>
   )
