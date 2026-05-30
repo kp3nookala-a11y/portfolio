@@ -160,6 +160,17 @@ function MathGame({ onClose }: { onClose: () => void }) {
         <span>{'❤️'.repeat(lives)}</span>
         <button className="close-btn" onClick={onClose}>✕</button>
       </div>
+      {!gameOver && problems.length === 0 && (
+        <div className="game-directions">
+          <div className="gdir-title">🎮 How to Play Math Blaster</div>
+          <div className="gdir-step">➊ Math problems fall from the top of the screen</div>
+          <div className="gdir-step">➋ Type the answer in the box at the bottom</div>
+          <div className="gdir-step">➌ Press <kbd>Enter</kbd> or <kbd>✓</kbd> to submit</div>
+          <div className="gdir-step">➍ Don't let problems reach the bottom — you lose a ❤️ each time one escapes!</div>
+          <div className="gdir-step">➎ Earn <strong>+10 pts</strong> for every correct answer</div>
+          <div className="gdir-step">You have <strong>3 lives</strong>. Good luck! 🚀</div>
+        </div>
+      )}
       {gameOver ? (
         <div className="game-over">
           <h2>Game Over!</h2>
@@ -370,6 +381,14 @@ function StudyMode({ onCorrect }: { onCorrect: () => void }) {
         <div className="study-empty">
           <div className="study-empty-icon">🤖</div>
           <p>Pick a grade, topic, and difficulty — then hit <strong>Generate Problem</strong> to get an AI-powered math question!</p>
+          <div className="study-directions">
+            <div className="sdir"><span>🎯</span> <span><strong>Easy:</strong> straightforward problems to build confidence</span></div>
+            <div className="sdir"><span>🔥</span> <span><strong>Medium:</strong> requires a couple of steps — great for practice</span></div>
+            <div className="sdir"><span>💪</span> <span><strong>Hard:</strong> challenging problems that push your skills</span></div>
+            <div className="sdir"><span>💡</span> <span>Stuck? Hit <strong>Show Hint</strong> before submitting</span></div>
+            <div className="sdir"><span>⭐</span> <span>Get it right and earn <strong>+10 pts</strong> toward unlocking Math Blaster</span></div>
+            <div className="sdir"><span>🔄</span> <span>AI never repeats the last 5 questions</span></div>
+          </div>
         </div>
       )}
     </div>
@@ -499,6 +518,37 @@ export default function App() {
           <p>A website that helps you get ahead in Math!!!</p>
         </div>
 
+        {/* How it works */}
+        <div className="directions">
+          <div className="dir-title">👋 How It Works</div>
+          <div className="dir-steps">
+            <div className="dir-step">
+              <span className="dir-num">1</span>
+              <div>
+                <strong>Pick your grade</strong> in the Lessons tab — we'll teach you the <em>next</em> grade's math so you get ahead.
+              </div>
+            </div>
+            <div className="dir-step">
+              <span className="dir-num">2</span>
+              <div>
+                <strong>Answer problems</strong> by typing your answer and pressing ✓ or Enter. Any equivalent form is accepted (e.g. 2/4 = 1/2 = 0.5).
+              </div>
+            </div>
+            <div className="dir-step">
+              <span className="dir-num">3</span>
+              <div>
+                <strong>Earn ⭐ points</strong> for every correct answer. Reach <strong>100 pts</strong> to unlock the 🎮 Math Blaster game!
+              </div>
+            </div>
+            <div className="dir-step">
+              <span className="dir-num">4</span>
+              <div>
+                <strong>Try AI Study Mode</strong> for unlimited AI-generated problems with hints, explanations, and difficulty levels.
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Points bar */}
         <div className="points-bar">
           <div className="points-info">
@@ -536,9 +586,13 @@ export default function App() {
                 ))}
               </div>
             </div>
+            {!grade && (
+              <div className="pick-grade-hint">👆 Select your current grade above to load your lessons</div>
+            )}
             {content && (
               <div className="lessons">
                 <h2 className="lessons-title">{content.label}</h2>
+                <p className="lessons-sub">Type your answer in each box and press <kbd>Enter</kbd> or <kbd>✓</kbd> to check it. Press <kbd>Skip</kbd> to reveal the answer without earning points.</p>
                 <div className="lessons-grid">
                   {content.lessons.map((lesson, i) => (
                     <div className="lesson-card" key={i}>

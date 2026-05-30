@@ -1,5 +1,15 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+kbd {
+  background: #1a2a5e;
+  border: 1px solid #4a7fff44;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.8em;
+  color: #7eb8ff;
+  font-family: monospace;
+}
+
 body {
   background: #0a0f2c;
   color: #e0e8ff;
@@ -273,6 +283,109 @@ body {
 }
 .game-over h2 { font-size: 3rem; color: #ff6b6b; }
 .game-over p { font-size: 1.5rem; color: #fbbf24; }
+
+/* ── Directions ── */
+.directions {
+  background: rgba(10,15,44,0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(100,255,180,0.15);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+}
+.dir-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #64ffb4;
+  margin-bottom: 0.9rem;
+}
+.dir-steps { display: flex; flex-direction: column; gap: 0.65rem; }
+.dir-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #c0d0f0;
+  line-height: 1.5;
+}
+.dir-num {
+  min-width: 24px;
+  height: 24px;
+  background: #1a2a5e;
+  border: 1px solid #4a7fff44;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7eb8ff;
+  flex-shrink: 0;
+}
+
+.pick-grade-hint {
+  text-align: center;
+  color: #4a6fa5;
+  font-size: 0.95rem;
+  padding: 1.5rem;
+  background: rgba(10,15,44,0.5);
+  border-radius: 12px;
+  border: 1px dashed #1e2f6e;
+}
+
+.lessons-sub {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #4a6fa5;
+  margin-bottom: 0.25rem;
+}
+
+/* Study mode directions */
+.study-directions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  text-align: left;
+  width: 100%;
+  max-width: 420px;
+}
+.sdir {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #7a90c0;
+  line-height: 1.4;
+}
+.sdir strong { color: #a5c8ff; }
+
+/* Game directions */
+.game-directions {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10,15,44,0.95);
+  border: 1px solid #4a7fff44;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 300px;
+  animation: fadeIn 0.3s ease;
+}
+.gdir-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #7eb8ff;
+  margin-bottom: 0.25rem;
+}
+.gdir-step {
+  font-size: 0.9rem;
+  color: #c0d0f0;
+  line-height: 1.5;
+}
+.gdir-step strong { color: #64ffb4; }
 
 /* ── Tabs ── */
 .tabs {
