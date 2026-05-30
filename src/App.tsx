@@ -377,8 +377,6 @@ function StudyMode({ onCorrect }: { onCorrect: () => void }) {
 }
 
 // ── Problem Component ──────────────────────────────────────
-function gcd(a: number, b: number): number { return b === 0 ? Math.abs(a) : gcd(b, a % b) }
-
 function toDecimal(s: string): number | null {
   s = s.trim().replace(/\s+/g, '')
   // fraction like 3/4 or -1/2
