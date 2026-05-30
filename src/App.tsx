@@ -500,24 +500,84 @@ function answersMatch(userRaw: string, correctRaw: string): boolean {
   return false
 }
 
-// parse "34 + 21 = ?" or "75 − 32 = ?" into stacked parts
-function parseStacked(q: string): { top: string; op: string; bottom: string } | null {
-  const m = q.match(/^(-?\d+)\s*([+\-−])\s*(\d+)\s*=\s*\?$/)
-  if (!m) return null
-  return { top: m[1], op: m[2] === '-' || m[2] === '−' ? '−' : '+', bottom: m[3] }
+type StackedParts = { top: string; op: string; bottom: string; kind: 'arith' | 'division' }
+
+function parseStacked(q: string): StackedParts | null {
+  // addition / subtraction: "34 + 21 = ?" or "75 − 32 = ?"
+  const arith = q.match(/^(-?\d[\d,]*)\s*([+\-−])\s*(\d[\d,]*)\s*=\s*\?$/)
+  if (arith) {
+    const op = arith[2] === '+' ? '+' : '−'
+    return { top: arith[1], op, bottom: arith[3], kind: 'arith' }
+  }
+  // multiplication: "3 × 4 = ?" or "12 × 11 = ?"
+  const mult = q.match(/^(-?\d[\d,]*)\s*[×x\*]\s*(\d[\d,]*)\s*=\s*\?$/)
+  if (mult) return { top: mult[1], op: '×', bottom: mult[2], kind: 'arith' }
+
+  // division: "48 ÷ 6 = ?"
+  const div = q.match(/^(\d[\d,]*)\s*÷\s*(\d+)\s*=\s*\?$/)
+  if (div) return { top: div[1], op: '÷', bottom: div[2], kind: 'division' }
+
+  return null
 }
 
 function StackedProblem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
   const parts = parseStacked(q)!
-  const width = Math.max(parts.top.length, parts.bottom.length, 3)
 
   function check() {
     if (answersMatch(input, a)) { setStatus('correct'); onCorrect() }
     else setStatus('wrong')
   }
 
+  const answerField = (
+    status === 'idle' || status === 'wrong' ? (
+      <input
+        className={`stacked-input ${status === 'wrong' ? 'wrong' : ''}`}
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && check()}
+        placeholder="?"
+        autoComplete="off"
+      />
+    ) : (
+      <span className={`stacked-result ${status}`}>
+        {status === 'correct' ? '✓ ' : '✗ '}{a}
+      </span>
+    )
+  )
+
+  const btns = (
+    <div className="stacked-btns">
+      {(status === 'idle' || status === 'wrong') && (
+        <>
+          <button className="reveal-btn" onClick={check}>✓ Check</button>
+          <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Skip</button>
+        </>
+      )}
+      {status === 'wrong' && <span className="stacked-wrong-msg">Try again!</span>}
+    </div>
+  )
+
+  if (parts.kind === 'division') {
+    // Long division: divisor ) dividend
+    return (
+      <div className={`problem stacked-problem ${status}`}>
+        <div className="long-div">
+          <span className="long-div-divisor">{parts.bottom}</span>
+          <div className="long-div-bracket">
+            <div className="long-div-top-line" />
+            <div className="long-div-dividend">{parts.top}</div>
+          </div>
+          <div className="long-div-answer">{answerField}</div>
+        </div>
+        {btns}
+      </div>
+    )
+  }
+
+  // Standard stacked (add / subtract / multiply)
+  const width = Math.max(parts.top.length, parts.bottom.length, 3)
   return (
     <div className={`problem stacked-problem ${status}`}>
       <div className="stacked">
@@ -530,37 +590,14 @@ function StackedProblem({ q, a, onCorrect }: { q: string; a: string; onCorrect: 
           <span className="stacked-num" style={{ minWidth: `${width}ch` }}>{parts.bottom}</span>
         </div>
         <div className="stacked-line" style={{ width: `${width + 1.5}ch` }} />
-        {status === 'idle' || status === 'wrong' ? (
-          <div className="stacked-row stacked-answer-row">
-            <span className="stacked-op-space" />
-            <input
-              className={`stacked-input ${status === 'wrong' ? 'wrong' : ''}`}
-              style={{ width: `${width + 1}ch` }}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && check()}
-              placeholder={'?'.padStart(width)}
-              autoComplete="off"
-            />
-          </div>
-        ) : (
-          <div className="stacked-row">
-            <span className="stacked-op-space" />
-            <span className={`stacked-num stacked-result ${status}`} style={{ minWidth: `${width}ch` }}>
-              {status === 'correct' ? '✓ ' : '✗ '}{a}
-            </span>
-          </div>
-        )}
+        <div className="stacked-row stacked-answer-row">
+          <span className="stacked-op-space" />
+          <span style={{ minWidth: `${width}ch`, textAlign: 'right', display: 'inline-block' }}>
+            {answerField}
+          </span>
+        </div>
       </div>
-      <div className="stacked-btns">
-        {(status === 'idle' || status === 'wrong') && (
-          <>
-            <button className="reveal-btn" onClick={check}>✓ Check</button>
-            <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Skip</button>
-          </>
-        )}
-        {status === 'wrong' && <span className="stacked-wrong-msg">Try again!</span>}
-      </div>
+      {btns}
     </div>
   )
 }
@@ -569,7 +606,6 @@ function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => v
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
 
-  // Use stacked algorithm for addition/subtraction
   if (parseStacked(q)) {
     return <StackedProblem q={q} a={a} onCorrect={onCorrect} />
   }

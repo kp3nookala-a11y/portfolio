@@ -136,6 +136,42 @@
 .stacked-btns { display: flex; gap: 0.5rem; align-items: center; }
 .stacked-wrong-msg { font-size: 0.78rem; color: #ff6b6b; }
 
+/* Long division */
+.long-div {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #e0e8ff;
+}
+.long-div-divisor {
+  align-self: flex-end;
+  padding-bottom: 0.15rem;
+  padding-right: 0.2rem;
+  color: #7eb8ff;
+}
+.long-div-bracket {
+  display: flex;
+  flex-direction: column;
+  border-left: 3px solid #4a7fff;
+  border-top: 3px solid #4a7fff;
+  padding: 0.2rem 0.5rem 0.1rem 0.4rem;
+}
+.long-div-top-line { display: none; }
+.long-div-dividend { color: #e0e8ff; }
+.long-div-answer {
+  align-self: center;
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1rem;
+  color: #4a6fa5;
+}
+.long-div-answer::before { content: '='; }
+
 kbd {
   background: #1a2a5e;
   border: 1px solid #4a7fff44;
