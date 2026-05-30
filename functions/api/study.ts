@@ -56,7 +56,11 @@ Question: "${checkAnswer.question}"
 Their answer: "${checkAnswer.userAnswer}"
 Correct answer: "${checkAnswer.correctAnswer}"
 
-Is the student's answer correct? Allow equivalent forms (e.g. "1/2" and "0.5" are both correct, "x>3" and "x > 3" are the same).
+Is the student's answer correct? Be generous — accept any equivalent form. Examples of what counts as correct:
+- "2/4", "4/8", "0.5" all equal "1/2"
+- "6/4" equals "3/2" equals "1.5"
+- decimals rounded to 2 places are fine
+- do NOT require lowest common denominator or simplified form
 Respond with valid JSON only, no markdown:
 {"correct": true, "feedback": "one encouraging sentence", "tip": "one short tip"}`
     } else {

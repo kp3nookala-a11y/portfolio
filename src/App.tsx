@@ -377,16 +377,48 @@ function StudyMode({ onCorrect }: { onCorrect: () => void }) {
 }
 
 // ── Problem Component ──────────────────────────────────────
+function gcd(a: number, b: number): number { return b === 0 ? Math.abs(a) : gcd(b, a % b) }
+
+function toDecimal(s: string): number | null {
+  s = s.trim().replace(/\s+/g, '')
+  // fraction like 3/4 or -1/2
+  const fracMatch = s.match(/^(-?\d+)\/(-?\d+)$/)
+  if (fracMatch) {
+    const num = parseInt(fracMatch[1]), den = parseInt(fracMatch[2])
+    if (den === 0) return null
+    return num / den
+  }
+  const n = parseFloat(s)
+  return isNaN(n) ? null : n
+}
+
+function answersMatch(userRaw: string, correctRaw: string): boolean {
+  const user = userRaw.trim().toLowerCase().replace(/\s+/g, '')
+  const correct = correctRaw.trim().toLowerCase().replace(/\s+/g, '')
+
+  // exact match (after normalizing spaces/case)
+  if (user === correct) return true
+
+  // numeric / fraction equivalence
+  const uVal = toDecimal(user)
+  const cVal = toDecimal(correct)
+  if (uVal !== null && cVal !== null) {
+    return Math.abs(uVal - cVal) < 0.001
+  }
+
+  // strip trailing zeros on decimals: 0.50 == 0.5
+  const uNum = parseFloat(user), cNum = parseFloat(correct)
+  if (!isNaN(uNum) && !isNaN(cNum)) return Math.abs(uNum - cNum) < 0.001
+
+  return false
+}
+
 function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
 
-  function normalize(s: string) {
-    return s.toLowerCase().replace(/\s+/g, '').replace(/[×x]/g, '*')
-  }
-
   function check() {
-    if (normalize(input) === normalize(a)) {
+    if (answersMatch(input, a)) {
       setStatus('correct')
       onCorrect()
     } else {
@@ -413,7 +445,7 @@ function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => v
         </div>
       ) : (
         <span className={`problem-a ${status}`}>
-          {status === 'correct' ? '✓ ' : status === 'wrong' ? '✗ ' : ''}{a}
+          {status === 'correct' ? '✓ ' : status === ('wrong' as string) ? '✗ ' : ''}{a}
         </span>
       )}
     </div>
