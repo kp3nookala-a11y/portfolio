@@ -666,6 +666,8 @@ export default function App() {
         ))}
       </div>
 
+      <div className="corner-credit">Made by Kian Nookala</div>
+
       <div className="main">
         <div className="hero-card">
           <h1>A+ Mathematics</h1>

@@ -155,6 +155,18 @@ body {
 
 .page { position: relative; min-height: 100vh; }
 
+.corner-credit {
+  position: fixed;
+  bottom: 1rem;
+  right: 1.25rem;
+  font-size: 0.75rem;
+  color: #2a3a6a;
+  font-style: italic;
+  z-index: 50;
+  pointer-events: none;
+  letter-spacing: 0.03em;
+}
+
 .bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 
 .floater {
