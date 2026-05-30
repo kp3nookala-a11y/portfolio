@@ -395,6 +395,76 @@ function StudyMode({ onCorrect }: { onCorrect: () => void }) {
   )
 }
 
+// ── Profile ────────────────────────────────────────────────
+const AVATARS = ['🧑‍🎓','👦','👧','🧒','👨‍💻','👩‍💻','🦸','🧙','🐱','🦊','🐼','🚀']
+
+type Profile = { name: string; grade: number; avatar: string }
+
+function ProfileSetup({ onSave }: { onSave: (p: Profile) => void }) {
+  const [name, setName] = useState('')
+  const [grade, setGrade] = useState(6)
+  const [avatar, setAvatar] = useState(AVATARS[0])
+
+  function save() {
+    if (!name.trim()) return
+    onSave({ name: name.trim(), grade, avatar })
+  }
+
+  return (
+    <div className="profile-setup">
+      <div className="profile-setup-title">👋 Create Your Profile</div>
+      <p className="profile-setup-sub">Tell us about yourself so we can personalise your learning!</p>
+
+      <div className="profile-field">
+        <label>Your Name</label>
+        <input
+          className="profile-input"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && save()}
+          placeholder="Enter your name..."
+          autoFocus
+        />
+      </div>
+
+      <div className="profile-field">
+        <label>Your Current Grade</label>
+        <select className="study-select" value={grade} onChange={e => setGrade(+e.target.value)}>
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map(g => <option key={g} value={g}>Grade {g}</option>)}
+        </select>
+      </div>
+
+      <div className="profile-field">
+        <label>Pick an Avatar</label>
+        <div className="avatar-grid">
+          {AVATARS.map(av => (
+            <button key={av} className={`avatar-btn ${avatar === av ? 'selected' : ''}`} onClick={() => setAvatar(av)}>
+              {av}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button className="gen-btn" onClick={save} disabled={!name.trim()} style={{ marginTop: '0.5rem' }}>
+        Let's Go! 🚀
+      </button>
+    </div>
+  )
+}
+
+function ProfileCard({ profile, points, onEdit }: { profile: Profile; points: number; onEdit: () => void }) {
+  return (
+    <div className="profile-card">
+      <div className="profile-avatar">{profile.avatar}</div>
+      <div className="profile-info">
+        <div className="profile-name">{profile.name}</div>
+        <div className="profile-meta">Grade {profile.grade} · ⭐ {points} pts</div>
+      </div>
+      <button className="profile-edit-btn" onClick={onEdit} title="Edit profile">✏️</button>
+    </div>
+  )
+}
+
 // ── Problem Component ──────────────────────────────────────
 function toDecimal(s: string): number | null {
   s = s.trim().replace(/\s+/g, '')
@@ -430,9 +500,79 @@ function answersMatch(userRaw: string, correctRaw: string): boolean {
   return false
 }
 
+// parse "34 + 21 = ?" or "75 − 32 = ?" into stacked parts
+function parseStacked(q: string): { top: string; op: string; bottom: string } | null {
+  const m = q.match(/^(-?\d+)\s*([+\-−])\s*(\d+)\s*=\s*\?$/)
+  if (!m) return null
+  return { top: m[1], op: m[2] === '-' || m[2] === '−' ? '−' : '+', bottom: m[3] }
+}
+
+function StackedProblem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
+  const [input, setInput] = useState('')
+  const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
+  const parts = parseStacked(q)!
+  const width = Math.max(parts.top.length, parts.bottom.length, 3)
+
+  function check() {
+    if (answersMatch(input, a)) { setStatus('correct'); onCorrect() }
+    else setStatus('wrong')
+  }
+
+  return (
+    <div className={`problem stacked-problem ${status}`}>
+      <div className="stacked">
+        <div className="stacked-row">
+          <span className="stacked-op-space" />
+          <span className="stacked-num" style={{ minWidth: `${width}ch` }}>{parts.top}</span>
+        </div>
+        <div className="stacked-row">
+          <span className="stacked-op">{parts.op}</span>
+          <span className="stacked-num" style={{ minWidth: `${width}ch` }}>{parts.bottom}</span>
+        </div>
+        <div className="stacked-line" style={{ width: `${width + 1.5}ch` }} />
+        {status === 'idle' || status === 'wrong' ? (
+          <div className="stacked-row stacked-answer-row">
+            <span className="stacked-op-space" />
+            <input
+              className={`stacked-input ${status === 'wrong' ? 'wrong' : ''}`}
+              style={{ width: `${width + 1}ch` }}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && check()}
+              placeholder={'?'.padStart(width)}
+              autoComplete="off"
+            />
+          </div>
+        ) : (
+          <div className="stacked-row">
+            <span className="stacked-op-space" />
+            <span className={`stacked-num stacked-result ${status}`} style={{ minWidth: `${width}ch` }}>
+              {status === 'correct' ? '✓ ' : '✗ '}{a}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="stacked-btns">
+        {(status === 'idle' || status === 'wrong') && (
+          <>
+            <button className="reveal-btn" onClick={check}>✓ Check</button>
+            <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Skip</button>
+          </>
+        )}
+        {status === 'wrong' && <span className="stacked-wrong-msg">Try again!</span>}
+      </div>
+    </div>
+  )
+}
+
 function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
+
+  // Use stacked algorithm for addition/subtraction
+  if (parseStacked(q)) {
+    return <StackedProblem q={q} a={a} onCorrect={onCorrect} />
+  }
 
   function check() {
     if (answersMatch(input, a)) {
@@ -471,16 +611,30 @@ function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => v
 
 // ── Main App ───────────────────────────────────────────────
 export default function App() {
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    try { return JSON.parse(localStorage.getItem('aplus-profile') || 'null') } catch { return null }
+  })
+  const [editingProfile, setEditingProfile] = useState(false)
   const [grade, setGrade] = useState<number | null>(null)
-  const [points, setPoints] = useState(0)
+  const [points, setPoints] = useState(() => {
+    try { return parseInt(localStorage.getItem('aplus-points') || '0') } catch { return 0 }
+  })
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
   const [tab, setTab] = useState<'lessons' | 'study'>('lessons')
+
+  function saveProfile(p: Profile) {
+    setProfile(p)
+    setGrade(p.grade)
+    setEditingProfile(false)
+    localStorage.setItem('aplus-profile', JSON.stringify(p))
+  }
 
   function addPoint() {
     setPoints(p => {
       const next = p + 10
       if (next >= 100 && p < 100) setPopAnim(true)
+      localStorage.setItem('aplus-points', String(next))
       return next
     })
   }
@@ -517,6 +671,13 @@ export default function App() {
           <h1>A+ Mathematics</h1>
           <p>A website that helps you get ahead in Math!!!</p>
         </div>
+
+        {/* Profile */}
+        {!profile || editingProfile ? (
+          <ProfileSetup onSave={saveProfile} />
+        ) : (
+          <ProfileCard profile={profile} points={points} onEdit={() => setEditingProfile(true)} />
+        )}
 
         {/* How it works */}
         <div className="directions">
