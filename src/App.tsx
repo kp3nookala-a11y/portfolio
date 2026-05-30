@@ -680,7 +680,7 @@ export default function App() {
     return Array.from({ length: 200 }, (_, i) => ({
       text: expressions[i % expressions.length],
       top: rand() * 100, left: rand() * 100,
-      opacity: 0.04 + rand() * 0.13,
+      opacity: 0.02 + rand() * 0.05,
       size: 0.65 + rand() * 0.7,
       rotate: -25 + rand() * 50,
     }))
