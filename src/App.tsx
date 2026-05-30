@@ -15,68 +15,467 @@ const expressions = [
   '∫cos(x) dx = sin(x) + C', 'd/dx[eˣ] = eˣ', 'x²-1 = (x+1)(x-1)',
 ]
 
-type Lesson = { topic: string; description: string; problems: { q: string; a: string }[] }
+type Problem = { q: string; a: string; explain: string }
+type Lesson = { topic: string; description: string; problems: Problem[] }
+
+const p = (q: string, a: string, explain: string): Problem => ({ q, a, explain })
 
 const curriculum: Record<number, { label: string; lessons: Lesson[] }> = {
   1: { label: 'Grade 1 → Grade 2', lessons: [
-    { topic: 'Addition up to 100', description: 'Adding two-digit numbers.', problems: [{ q: '34 + 21 = ?', a: '55' }, { q: '47 + 36 = ?', a: '83' }, { q: '52 + 29 = ?', a: '81' }] },
-    { topic: 'Subtraction up to 100', description: 'Subtracting two-digit numbers.', problems: [{ q: '75 − 32 = ?', a: '43' }, { q: '90 − 47 = ?', a: '43' }, { q: '61 − 28 = ?', a: '33' }] },
-    { topic: 'Skip Counting', description: 'Count by 2s, 5s, and 10s.', problems: [{ q: 'Count by 5s: 5,10,15,?,?', a: '20,25' }, { q: 'Count by 2s: 2,4,6,?,?', a: '8,10' }, { q: 'Count by 10s: 10,20,?,?', a: '30,40' }] },
+    { topic: 'Addition up to 100', description: 'Add two-digit numbers by lining up the ones and tens columns.', problems: [
+      p('34 + 21 = ?','55','Line up: 4+1=5 ones, 3+2=5 tens → 55'),
+      p('47 + 36 = ?','83','7+6=13, write 3 carry 1. 4+3+1=8 → 83'),
+      p('52 + 29 = ?','81','2+9=11, write 1 carry 1. 5+2+1=8 → 81'),
+      p('63 + 18 = ?','81','3+8=11, write 1 carry 1. 6+1+1=8 → 81'),
+      p('45 + 45 = ?','90','5+5=10, write 0 carry 1. 4+4+1=9 → 90'),
+      p('27 + 54 = ?','81','7+4=11, write 1 carry 1. 2+5+1=8 → 81'),
+      p('38 + 43 = ?','81','8+3=11, write 1 carry 1. 3+4+1=8 → 81'),
+      p('16 + 75 = ?','91','6+5=11, write 1 carry 1. 1+7+1=9 → 91'),
+      p('59 + 33 = ?','92','9+3=12, write 2 carry 1. 5+3+1=9 → 92'),
+      p('74 + 18 = ?','92','4+8=12, write 2 carry 1. 7+1+1=9 → 92'),
+    ]},
+    { topic: 'Subtraction up to 100', description: 'Subtract by borrowing from the tens column when needed.', problems: [
+      p('75 − 32 = ?','43','5−2=3 ones, 7−3=4 tens → 43'),
+      p('90 − 47 = ?','43','0−7 borrow: 10−7=3, 8−4=4 → 43'),
+      p('61 − 28 = ?','33','1−8 borrow: 11−8=3, 5−2=3 → 33'),
+      p('84 − 36 = ?','48','4−6 borrow: 14−6=8, 7−3=4 → 48'),
+      p('72 − 45 = ?','27','2−5 borrow: 12−5=7, 6−4=2 → 27'),
+      p('50 − 19 = ?','31','0−9 borrow: 10−9=1, 4−1=3 → 31'),
+      p('93 − 57 = ?','36','3−7 borrow: 13−7=6, 8−5=3 → 36'),
+      p('66 − 28 = ?','38','6−8 borrow: 16−8=8, 5−2=3 → 38'),
+      p('41 − 16 = ?','25','1−6 borrow: 11−6=5, 3−1=2 → 25'),
+      p('80 − 35 = ?','45','0−5 borrow: 10−5=5, 7−3=4 → 45'),
+    ]},
+    { topic: 'Skip Counting', description: 'Skip counting means jumping by the same number each time.', problems: [
+      p('Count by 5s: 5,10,15,?,?','20,25','Add 5 each time: 15+5=20, 20+5=25'),
+      p('Count by 2s: 2,4,6,?,?','8,10','Add 2 each time: 6+2=8, 8+2=10'),
+      p('Count by 10s: 10,20,?,?','30,40','Add 10 each time: 20+10=30, 30+10=40'),
+      p('Count by 3s: 3,6,9,?,?','12,15','Add 3 each time: 9+3=12, 12+3=15'),
+      p('Count by 4s: 4,8,12,?,?','16,20','Add 4 each time: 12+4=16, 16+4=20'),
+      p('Count by 5s: 25,30,35,?,?','40,45','Add 5 each time: 35+5=40, 40+5=45'),
+      p('Count by 2s: 14,16,18,?,?','20,22','Add 2 each time: 18+2=20, 20+2=22'),
+      p('Count by 10s: 40,50,?,?','60,70','Add 10 each time: 50+10=60, 60+10=70'),
+      p('Count by 3s: 15,18,21,?,?','24,27','Add 3 each time: 21+3=24, 24+3=27'),
+      p('Count by 4s: 20,24,28,?,?','32,36','Add 4 each time: 28+4=32, 32+4=36'),
+    ]},
   ]},
   2: { label: 'Grade 2 → Grade 3', lessons: [
-    { topic: 'Multiplication Intro', description: 'Multiplication as repeated addition.', problems: [{ q: '3 × 4 = ?', a: '12' }, { q: '5 × 6 = ?', a: '30' }, { q: '7 × 2 = ?', a: '14' }] },
-    { topic: 'Fractions Intro', description: 'Halves, thirds, and quarters.', problems: [{ q: '1/2 of 8 = ?', a: '4' }, { q: '1/4 of 12 = ?', a: '3' }, { q: '1/3 of 9 = ?', a: '3' }] },
-    { topic: 'Place Value', description: 'Hundreds, tens, and ones.', problems: [{ q: 'Hundreds digit of 374?', a: '3' }, { q: '200+50+6 = ?', a: '256' }, { q: '400+30+7 = ?', a: '437' }] },
+    { topic: 'Multiplication', description: 'Multiplication is repeated addition. 3×4 means 3 groups of 4.', problems: [
+      p('3 × 4 = ?','12','3 groups of 4: 4+4+4=12'),
+      p('5 × 6 = ?','30','5 groups of 6: 6+6+6+6+6=30'),
+      p('7 × 2 = ?','14','7 groups of 2: 2×7=14'),
+      p('6 × 8 = ?','48','6×8: think 6×8=48 (memorise this one!)'),
+      p('9 × 3 = ?','27','9×3: 9+9+9=27'),
+      p('4 × 7 = ?','28','4×7: 4+4+4+4+4+4+4=28'),
+      p('8 × 5 = ?','40','8×5: count by 5s eight times → 40'),
+      p('2 × 9 = ?','18','2×9=18 (same as 9×2)'),
+      p('6 × 6 = ?','36','6×6=36 (square number)'),
+      p('7 × 7 = ?','49','7×7=49 (square number)'),
+    ]},
+    { topic: 'Fractions Intro', description: 'A fraction shows part of a whole. 1/2 of a number means divide by 2.', problems: [
+      p('1/2 of 8 = ?','4','Divide 8 by 2: 8÷2=4'),
+      p('1/4 of 12 = ?','3','Divide 12 by 4: 12÷4=3'),
+      p('1/3 of 9 = ?','3','Divide 9 by 3: 9÷3=3'),
+      p('1/2 of 14 = ?','7','Divide 14 by 2: 14÷2=7'),
+      p('1/4 of 20 = ?','5','Divide 20 by 4: 20÷4=5'),
+      p('1/5 of 25 = ?','5','Divide 25 by 5: 25÷5=5'),
+      p('1/3 of 21 = ?','7','Divide 21 by 3: 21÷3=7'),
+      p('1/2 of 30 = ?','15','Divide 30 by 2: 30÷2=15'),
+      p('1/4 of 40 = ?','10','Divide 40 by 4: 40÷4=10'),
+      p('1/6 of 18 = ?','3','Divide 18 by 6: 18÷6=3'),
+    ]},
+    { topic: 'Place Value', description: 'Every digit has a place: hundreds, tens, ones. 374 = 300+70+4.', problems: [
+      p('Hundreds digit of 374?','3','374 = 3 hundreds, 7 tens, 4 ones → hundreds digit is 3'),
+      p('200+50+6 = ?','256','200+50+6 = 256'),
+      p('400+30+7 = ?','437','400+30+7 = 437'),
+      p('Tens digit of 582?','8','582 = 5 hundreds, 8 tens, 2 ones → tens digit is 8'),
+      p('Ones digit of 749?','9','749 = 7 hundreds, 4 tens, 9 ones → ones digit is 9'),
+      p('100+20+3 = ?','123','100+20+3 = 123'),
+      p('600+5 = ?','605','600+0+5 = 605 (zero tens)'),
+      p('Hundreds digit of 809?','8','809 = 8 hundreds, 0 tens, 9 ones → 8'),
+      p('300+70 = ?','370','300+70+0 = 370'),
+      p('What is the value of 5 in 523?','500','The 5 is in the hundreds place, so its value is 500'),
+    ]},
   ]},
   3: { label: 'Grade 3 → Grade 4', lessons: [
-    { topic: 'Long Multiplication', description: 'Multiplying larger numbers.', problems: [{ q: '12 × 11 = ?', a: '132' }, { q: '14 × 6 = ?', a: '84' }, { q: '25 × 4 = ?', a: '100' }] },
-    { topic: 'Division', description: 'Dividing with remainders.', problems: [{ q: '48 ÷ 6 = ?', a: '8' }, { q: '37 ÷ 5 = ?', a: '7r2' }, { q: '72 ÷ 8 = ?', a: '9' }] },
-    { topic: 'Area & Perimeter', description: 'Rectangles and squares.', problems: [{ q: 'Perimeter of 4×6?', a: '20' }, { q: 'Area of 5×7?', a: '35' }, { q: 'Perimeter square side 9?', a: '36' }] },
+    { topic: 'Long Multiplication', description: 'Multiply the ones, then the tens. Add the results together.', problems: [
+      p('12 × 11 = ?','132','12×10=120, 12×1=12, 120+12=132'),
+      p('14 × 6 = ?','84','14×6: 10×6=60, 4×6=24, 60+24=84'),
+      p('25 × 4 = ?','100','25×4: 20×4=80, 5×4=20, 80+20=100'),
+      p('13 × 7 = ?','91','13×7: 10×7=70, 3×7=21, 70+21=91'),
+      p('16 × 5 = ?','80','16×5: 10×5=50, 6×5=30, 50+30=80'),
+      p('21 × 8 = ?','168','21×8: 20×8=160, 1×8=8, 160+8=168'),
+      p('15 × 9 = ?','135','15×9: 10×9=90, 5×9=45, 90+45=135'),
+      p('32 × 3 = ?','96','32×3: 30×3=90, 2×3=6, 90+6=96'),
+      p('24 × 4 = ?','96','24×4: 20×4=80, 4×4=16, 80+16=96'),
+      p('11 × 11 = ?','121','11×11: 11×10=110, 11×1=11, 110+11=121'),
+    ]},
+    { topic: 'Division', description: 'Division splits into equal groups. Ask: "how many times does the divisor fit?"', problems: [
+      p('48 ÷ 6 = ?','8','6×8=48, so 48÷6=8'),
+      p('37 ÷ 5 = ?','7r2','5×7=35, 37−35=2 remainder → 7r2'),
+      p('72 ÷ 8 = ?','9','8×9=72, so 72÷8=9'),
+      p('56 ÷ 7 = ?','8','7×8=56, so 56÷7=8'),
+      p('45 ÷ 9 = ?','5','9×5=45, so 45÷9=5'),
+      p('33 ÷ 4 = ?','8r1','4×8=32, 33−32=1 remainder → 8r1'),
+      p('64 ÷ 8 = ?','8','8×8=64, so 64÷8=8'),
+      p('29 ÷ 6 = ?','4r5','6×4=24, 29−24=5 remainder → 4r5'),
+      p('81 ÷ 9 = ?','9','9×9=81, so 81÷9=9'),
+      p('50 ÷ 7 = ?','7r1','7×7=49, 50−49=1 remainder → 7r1'),
+    ]},
+    { topic: 'Area & Perimeter', description: 'Perimeter = add all sides. Area = length × width for rectangles.', problems: [
+      p('Perimeter of 4×6?','20','Add all sides: 4+6+4+6=20'),
+      p('Area of 5×7?','35','Area = 5×7=35 square units'),
+      p('Perimeter square side 9?','36','Square has 4 equal sides: 9×4=36'),
+      p('Area of 3×8?','24','Area = 3×8=24 square units'),
+      p('Perimeter of 5×5?','20','5+5+5+5=20'),
+      p('Area of 6×6?','36','Area = 6×6=36 (it\'s a square!)'),
+      p('Perimeter of 2×9?','22','2+9+2+9=22'),
+      p('Area of 10×4?','40','Area = 10×4=40 square units'),
+      p('Perimeter of 7×3?','20','7+3+7+3=20'),
+      p('Area of 8×8?','64','Area = 8×8=64 (square number!)'),
+    ]},
   ]},
   4: { label: 'Grade 4 → Grade 5', lessons: [
-    { topic: 'Fractions & Decimals', description: 'Converting between them.', problems: [{ q: '3/4 as decimal?', a: '0.75' }, { q: '0.5 as fraction?', a: '1/2' }, { q: '1/5 as decimal?', a: '0.2' }] },
-    { topic: 'Adding Fractions', description: 'Like and unlike denominators.', problems: [{ q: '1/4 + 2/4 = ?', a: '3/4' }, { q: '1/3 + 1/6 = ?', a: '1/2' }, { q: '2/5 + 1/10 = ?', a: '1/2' }] },
-    { topic: 'Multi-digit Multiplication', description: '3-digit by 2-digit.', problems: [{ q: '123 × 12 = ?', a: '1476' }, { q: '204 × 11 = ?', a: '2244' }, { q: '312 × 21 = ?', a: '6552' }] },
+    { topic: 'Fractions & Decimals', description: 'To convert a fraction to decimal, divide the top by the bottom.', problems: [
+      p('3/4 as decimal?','0.75','3÷4=0.75 (think: 3/4 of a dollar = 75 cents)'),
+      p('0.5 as fraction?','1/2','0.5 = 5/10 = 1/2'),
+      p('1/5 as decimal?','0.2','1÷5=0.2'),
+      p('1/4 as decimal?','0.25','1÷4=0.25 (quarter dollar!)'),
+      p('0.75 as fraction?','3/4','0.75 = 75/100 = 3/4'),
+      p('2/5 as decimal?','0.4','2÷5=0.4'),
+      p('0.1 as fraction?','1/10','0.1 = 1/10'),
+      p('3/10 as decimal?','0.3','3÷10=0.3'),
+      p('1/2 as decimal?','0.5','1÷2=0.5'),
+      p('0.25 as fraction?','1/4','0.25 = 25/100 = 1/4'),
+    ]},
+    { topic: 'Adding Fractions', description: 'Same denominator: add tops. Different: find a common denominator first.', problems: [
+      p('1/4 + 2/4 = ?','3/4','Same bottom: 1+2=3, keep /4 → 3/4'),
+      p('1/3 + 1/6 = ?','1/2','Make same: 2/6+1/6=3/6=1/2'),
+      p('2/5 + 1/10 = ?','1/2','Make same: 4/10+1/10=5/10=1/2'),
+      p('1/2 + 1/4 = ?','3/4','Make same: 2/4+1/4=3/4'),
+      p('1/3 + 1/3 = ?','2/3','Same bottom: 1+1=2, keep /3 → 2/3'),
+      p('3/8 + 1/8 = ?','1/2','Same bottom: 3+1=4/8=1/2'),
+      p('1/6 + 1/3 = ?','1/2','Make same: 1/6+2/6=3/6=1/2'),
+      p('2/3 + 1/6 = ?','5/6','Make same: 4/6+1/6=5/6'),
+      p('1/4 + 1/4 = ?','1/2','Same bottom: 1+1=2/4=1/2'),
+      p('3/10 + 1/5 = ?','1/2','Make same: 3/10+2/10=5/10=1/2'),
+    ]},
+    { topic: 'Multi-digit Multiplication', description: 'Multiply by ones digit, then tens digit (×10), then add.', problems: [
+      p('123 × 12 = ?','1476','123×2=246, 123×10=1230, 246+1230=1476'),
+      p('204 × 11 = ?','2244','204×1=204, 204×10=2040, 204+2040=2244'),
+      p('312 × 21 = ?','6552','312×1=312, 312×20=6240, 312+6240=6552'),
+      p('111 × 11 = ?','1221','111×1=111, 111×10=1110, 111+1110=1221'),
+      p('200 × 15 = ?','3000','200×5=1000, 200×10=2000, 1000+2000=3000'),
+      p('132 × 10 = ?','1320','Multiply by 10: add a zero → 1320'),
+      p('150 × 4 = ?','600','150×4: 100×4=400, 50×4=200, 400+200=600'),
+      p('221 × 3 = ?','663','221×3: 200×3=600, 21×3=63, 600+63=663'),
+      p('120 × 5 = ?','600','120×5: 100×5=500, 20×5=100, 500+100=600'),
+      p('302 × 3 = ?','906','302×3: 300×3=900, 2×3=6, 900+6=906'),
+    ]},
   ]},
   5: { label: 'Grade 5 → Grade 6', lessons: [
-    { topic: 'Ratios & Proportions', description: 'Solving ratios.', problems: [{ q: '3:5 = ?:20', a: '12' }, { q: 'Simplify 12:16', a: '3:4' }, { q: '60% of 80 = ?', a: '48' }] },
-    { topic: 'Negative Numbers', description: 'Operations with negatives.', problems: [{ q: '-4 + 7 = ?', a: '3' }, { q: '5 − (−3) = ?', a: '8' }, { q: '-6 × -2 = ?', a: '12' }] },
-    { topic: 'Variables', description: 'One-step equations.', problems: [{ q: 'x + 5 = 12', a: '7' }, { q: '3y = 21', a: '7' }, { q: 'z − 4 = 9', a: '13' }] },
+    { topic: 'Ratios & Proportions', description: 'A ratio compares two quantities. Scale both sides by the same number.', problems: [
+      p('3:5 = ?:20','12','5×4=20, so 3×4=12'),
+      p('Simplify 12:16','3:4','GCD of 12 and 16 is 4. 12÷4=3, 16÷4=4 → 3:4'),
+      p('60% of 80 = ?','48','60% = 60/100 = 0.6. 0.6×80=48'),
+      p('2:3 = 8:?','12','2×4=8, so 3×4=12'),
+      p('Simplify 9:12','3:4','GCD=3. 9÷3=3, 12÷3=4 → 3:4'),
+      p('50% of 60 = ?','30','50% = half. 60÷2=30'),
+      p('1:4 = 5:?','20','1×5=5, so 4×5=20'),
+      p('25% of 40 = ?','10','25% = 1/4. 40÷4=10'),
+      p('Simplify 10:15','2:3','GCD=5. 10÷5=2, 15÷5=3 → 2:3'),
+      p('75% of 20 = ?','15','75% = 3/4. 20×3÷4=15'),
+    ]},
+    { topic: 'Negative Numbers', description: 'On a number line, negatives are left of zero. Subtracting a negative = adding.', problems: [
+      p('-4 + 7 = ?','3','Start at -4, move 7 right → 3'),
+      p('5 − (−3) = ?','8','Subtracting negative = adding: 5+3=8'),
+      p('-6 × -2 = ?','12','Negative × negative = positive: 6×2=12'),
+      p('-3 + (-5) = ?','-8','Both negative: −3−5=−8'),
+      p('10 − 14 = ?','-4','10−14=−4 (went below zero)'),
+      p('-7 + 7 = ?','0','Opposites cancel: −7+7=0'),
+      p('-2 × 5 = ?','-10','Negative × positive = negative: 2×5=10 → −10'),
+      p('-8 − 2 = ?','-10','Both going left: −8−2=−10'),
+      p('3 + (-9) = ?','-6','3−9=−6'),
+      p('-4 × -4 = ?','16','Negative × negative = positive: 4×4=16'),
+    ]},
+    { topic: 'Variables', description: 'To solve for x, do the opposite operation to both sides.', problems: [
+      p('x + 5 = 12','7','Subtract 5 from both sides: x=12−5=7'),
+      p('3y = 21','7','Divide both sides by 3: y=21÷3=7'),
+      p('z − 4 = 9','13','Add 4 to both sides: z=9+4=13'),
+      p('x + 8 = 15','7','Subtract 8 from both sides: x=15−8=7'),
+      p('4m = 28','7','Divide both sides by 4: m=28÷4=7'),
+      p('n − 6 = 10','16','Add 6 to both sides: n=10+6=16'),
+      p('2p = 18','9','Divide both sides by 2: p=18÷2=9'),
+      p('x + 12 = 20','8','Subtract 12 from both sides: x=20−12=8'),
+      p('5k = 45','9','Divide both sides by 5: k=45÷5=9'),
+      p('w − 9 = 3','12','Add 9 to both sides: w=3+9=12'),
+    ]},
   ]},
   6: { label: 'Grade 6 → Grade 7', lessons: [
-    { topic: 'Linear Equations', description: 'Two-step equations.', problems: [{ q: '2x + 3 = 11', a: '4' }, { q: '5y − 4 = 16', a: '4' }, { q: '3z + 7 = 22', a: '5' }] },
-    { topic: 'Geometry: Angles', description: 'Complementary & supplementary.', problems: [{ q: 'Complement of 35°?', a: '55' }, { q: 'Supplement of 110°?', a: '70' }, { q: 'Angles in a triangle?', a: '180' }] },
-    { topic: 'Probability', description: 'Basic probability.', problems: [{ q: 'P(heads) = ?', a: '1/2' }, { q: 'P(rolling 3) = ?', a: '1/6' }, { q: 'P(red card) = ?', a: '1/2' }] },
+    { topic: 'Linear Equations', description: 'Two-step: first undo addition/subtraction, then undo multiplication.', problems: [
+      p('2x + 3 = 11','4','Step 1: 2x=11−3=8. Step 2: x=8÷2=4'),
+      p('5y − 4 = 16','4','Step 1: 5y=16+4=20. Step 2: y=20÷5=4'),
+      p('3z + 7 = 22','5','Step 1: 3z=22−7=15. Step 2: z=15÷3=5'),
+      p('4x − 1 = 19','5','Step 1: 4x=19+1=20. Step 2: x=20÷4=5'),
+      p('6m + 2 = 26','4','Step 1: 6m=26−2=24. Step 2: m=24÷6=4'),
+      p('2n − 5 = 9','7','Step 1: 2n=9+5=14. Step 2: n=14÷2=7'),
+      p('3x + 4 = 19','5','Step 1: 3x=19−4=15. Step 2: x=15÷3=5'),
+      p('7y − 3 = 25','4','Step 1: 7y=25+3=28. Step 2: y=28÷7=4'),
+      p('5p + 5 = 30','5','Step 1: 5p=30−5=25. Step 2: p=25÷5=5'),
+      p('4w − 8 = 16','6','Step 1: 4w=16+8=24. Step 2: w=24÷4=6'),
+    ]},
+    { topic: 'Geometry: Angles', description: 'Complementary angles add to 90°. Supplementary add to 180°. Triangle = 180°.', problems: [
+      p('Complement of 35°?','55','90−35=55°'),
+      p('Supplement of 110°?','70','180−110=70°'),
+      p('Angles in a triangle?','180','All triangles always add to 180°'),
+      p('Complement of 60°?','30','90−60=30°'),
+      p('Supplement of 45°?','135','180−45=135°'),
+      p('Third angle: 50° and 70°?','60','180−50−70=60°'),
+      p('Complement of 15°?','75','90−15=75°'),
+      p('Supplement of 90°?','90','180−90=90°'),
+      p('Third angle: 80° and 40°?','60','180−80−40=60°'),
+      p('Complement of 43°?','47','90−43=47°'),
+    ]},
+    { topic: 'Probability', description: 'Probability = favourable outcomes ÷ total outcomes. Always between 0 and 1.', problems: [
+      p('P(heads) = ?','1/2','1 heads out of 2 sides → 1/2'),
+      p('P(rolling 3) = ?','1/6','1 three out of 6 faces → 1/6'),
+      p('P(red card) = ?','1/2','26 red out of 52 cards → 26/52=1/2'),
+      p('P(rolling even) = ?','1/2','Even: 2,4,6 = 3 out of 6 → 3/6=1/2'),
+      p('P(rolling >4) = ?','1/3','5,6 = 2 out of 6 → 2/6=1/3'),
+      p('P(ace from deck) = ?','1/13','4 aces out of 52 → 4/52=1/13'),
+      p('P(tails) = ?','1/2','1 tails out of 2 sides → 1/2'),
+      p('P(rolling 1 or 2) = ?','1/3','2 outcomes out of 6 → 2/6=1/3'),
+      p('P(impossible event) = ?','0','Impossible = 0 probability'),
+      p('P(certain event) = ?','1','Certain = probability of 1'),
+    ]},
   ]},
   7: { label: 'Grade 7 → Grade 8', lessons: [
-    { topic: 'Systems of Equations', description: 'Two equations, two unknowns.', problems: [{ q: 'x+y=10, x−y=2. x=?', a: '6' }, { q: '2x+y=9, x+y=5. x=?', a: '4' }, { q: 'x+2y=8, x−y=2. y=?', a: '2' }] },
-    { topic: 'Exponent Rules', description: 'Laws of exponents.', problems: [{ q: 'x³ × x⁴ = ?', a: 'x7' }, { q: '(x²)³ = ?', a: 'x6' }, { q: '2^10 = ?', a: '1024' }] },
-    { topic: 'Pythagorean Theorem', description: 'Right triangle sides.', problems: [{ q: 'a=3,b=4,c=?', a: '5' }, { q: 'a=5,c=13,b=?', a: '12' }, { q: 'a=8,b=6,c=?', a: '10' }] },
+    { topic: 'Systems of Equations', description: 'Add or subtract the equations to cancel one variable, then solve.', problems: [
+      p('x+y=10, x−y=2. x=?','6','Add both: 2x=12 → x=6'),
+      p('2x+y=9, x+y=5. x=?','4','Subtract: x=4'),
+      p('x+2y=8, x−y=2. y=?','2','Subtract: 3y=6 → y=2'),
+      p('x+y=7, x−y=3. x=?','5','Add: 2x=10 → x=5'),
+      p('3x+y=11, x+y=5. x=?','3','Subtract: 2x=6 → x=3'),
+      p('x+y=6, x−y=2. y=?','2','Add: 2x=8→x=4, then y=6−4=2'),
+      p('2x+3y=12, 2x+y=8. y=?','2','Subtract: 2y=4 → y=2'),
+      p('x+y=9, x−y=1. x=?','5','Add: 2x=10 → x=5'),
+      p('4x+y=13, 2x+y=7. x=?','3','Subtract: 2x=6 → x=3'),
+      p('x+y=8, 2x−y=4. x=?','4','Add: 3x=12 → x=4'),
+    ]},
+    { topic: 'Exponent Rules', description: 'Multiply: add exponents. Power of power: multiply. x⁰=1.', problems: [
+      p('x³ × x⁴ = ?','x7','Same base: add exponents 3+4=7 → x⁷'),
+      p('(x²)³ = ?','x6','Power of power: multiply 2×3=6 → x⁶'),
+      p('2^10 = ?','1024','2¹⁰=1024 (double 10 times from 1)'),
+      p('x⁵ ÷ x² = ?','x3','Same base divide: subtract 5−2=3 → x³'),
+      p('(2x)² = ?','4x2','Square both: 2²=4 and x² → 4x²'),
+      p('x⁰ = ?','1','Any number to the power 0 = 1'),
+      p('3² × 3³ = ?','243','Add exponents: 3⁵=243'),
+      p('(x³)² = ?','x6','Multiply: 3×2=6 → x⁶'),
+      p('2³ × 2² = ?','32','Add exponents: 2⁵=32'),
+      p('x⁴ ÷ x⁴ = ?','1','x⁴÷x⁴=x⁰=1'),
+    ]},
+    { topic: 'Pythagorean Theorem', description: 'a²+b²=c² where c is the hypotenuse (longest side).', problems: [
+      p('a=3,b=4,c=?','5','3²+4²=9+16=25=5²  → c=5'),
+      p('a=5,c=13,b=?','12','5²+b²=13²: 25+b²=169 → b²=144 → b=12'),
+      p('a=8,b=6,c=?','10','8²+6²=64+36=100=10² → c=10'),
+      p('a=6,b=8,c=?','10','6²+8²=36+64=100 → c=10'),
+      p('a=9,b=12,c=?','15','9²+12²=81+144=225=15² → c=15'),
+      p('b=7,c=25,a=?','24','a²+49=625 → a²=576 → a=24'),
+      p('a=5,b=12,c=?','13','25+144=169=13² → c=13'),
+      p('a=1,b=1,c=?','1.41','1+1=2 → c=√2≈1.41'),
+      p('a=10,b=24,c=?','26','100+576=676=26² → c=26'),
+      p('a=7,b=24,c=?','25','49+576=625=25² → c=25'),
+    ]},
   ]},
   8: { label: 'Grade 8 → Algebra I', lessons: [
-    { topic: 'Quadratic Equations', description: 'Solve by factoring.', problems: [{ q: 'x²−5x+6=0, x=?', a: '2,3' }, { q: 'x²−9=0, x=?', a: '3,-3' }, { q: 'x²+4x+4=0, x=?', a: '-2' }] },
-    { topic: 'Functions', description: 'Function notation f(x).', problems: [{ q: 'f(x)=2x+1. f(3)=?', a: '7' }, { q: 'g(x)=x². g(−4)=?', a: '16' }, { q: 'h(x)=3x−5. h(0)=?', a: '-5' }] },
-    { topic: 'Inequalities', description: 'Solve linear inequalities.', problems: [{ q: '2x+1>7', a: 'x>3' }, { q: '3x−4≤11', a: 'x≤5' }, { q: '−2x>8', a: 'x<-4' }] },
+    { topic: 'Quadratic Equations', description: 'Factor into (x−a)(x−b)=0. Each factor gives a solution.', problems: [
+      p('x²−5x+6=0, x=?','2,3','Factor: (x−2)(x−3)=0 → x=2 or x=3'),
+      p('x²−9=0, x=?','3,-3','Difference of squares: (x−3)(x+3)=0 → x=±3'),
+      p('x²+4x+4=0, x=?','-2','Perfect square: (x+2)²=0 → x=−2'),
+      p('x²−7x+12=0, x=?','3,4','Factor: (x−3)(x−4)=0 → x=3 or 4'),
+      p('x²+5x+6=0, x=?','-2,-3','Factor: (x+2)(x+3)=0 → x=−2 or −3'),
+      p('x²−4=0, x=?','2,-2','Difference of squares: x=±2'),
+      p('x²−6x+9=0, x=?','3','Perfect square: (x−3)²=0 → x=3'),
+      p('x²+2x−8=0, x=?','2,-4','Factor: (x+4)(x−2)=0 → x=2 or −4'),
+      p('x²−1=0, x=?','1,-1','Difference of squares: x=±1'),
+      p('x²+6x+9=0, x=?','-3','Perfect square: (x+3)²=0 → x=−3'),
+    ]},
+    { topic: 'Functions', description: 'f(x) means substitute x into the formula. Replace x with the given number.', problems: [
+      p('f(x)=2x+1. f(3)=?','7','Replace x with 3: 2(3)+1=6+1=7'),
+      p('g(x)=x². g(−4)=?','16','(−4)²=16 (negative squared = positive)'),
+      p('h(x)=3x−5. h(0)=?','-5','3(0)−5=0−5=−5'),
+      p('f(x)=x+10. f(5)=?','15','5+10=15'),
+      p('g(x)=4x. g(3)=?','12','4×3=12'),
+      p('h(x)=x²+1. h(2)=?','5','2²+1=4+1=5'),
+      p('f(x)=5x−2. f(4)=?','18','5(4)−2=20−2=18'),
+      p('g(x)=2x². g(3)=?','18','2×3²=2×9=18'),
+      p('h(x)=x+x². h(3)=?','12','3+3²=3+9=12'),
+      p('f(x)=10−x. f(6)=?','4','10−6=4'),
+    ]},
+    { topic: 'Inequalities', description: 'Solve like equations BUT flip the sign when dividing by a negative!', problems: [
+      p('2x+1>7','x>3','2x>6 → x>3 (divide by positive, keep >)'),
+      p('3x−4≤11','x≤5','3x≤15 → x≤5'),
+      p('−2x>8','x<-4','x<−4 (FLIP sign! dividing by −2)'),
+      p('4x+2≥18','x≥4','4x≥16 → x≥4'),
+      p('x+5<12','x<7','x<12−5=7'),
+      p('−3x≤9','x≥-3','x≥−3 (FLIP sign! dividing by −3)'),
+      p('5x−10>0','x>2','5x>10 → x>2'),
+      p('2x≤14','x≤7','x≤14÷2=7'),
+      p('−x>4','x<-4','Multiply both sides by −1, flip sign: x<−4'),
+      p('3x+6<21','x<5','3x<15 → x<5'),
+    ]},
   ]},
   9: { label: 'Grade 9 → Geometry', lessons: [
-    { topic: 'Trigonometry', description: 'SOH-CAH-TOA.', problems: [{ q: 'sin(30°) = ?', a: '0.5' }, { q: 'cos(60°) = ?', a: '0.5' }, { q: 'tan(45°) = ?', a: '1' }] },
-    { topic: 'Circle Theorems', description: 'Area and circumference.', problems: [{ q: 'Area circle r=5?', a: '78.54' }, { q: 'Circumference r=7?', a: '43.98' }, { q: 'Diameter if r=6?', a: '12' }] },
-    { topic: 'Proofs & Logic', description: 'If-then statements.', problems: [{ q: 'Converse of "If p then q"?', a: 'if q then p' }, { q: 'Vertical angles are?', a: 'equal' }, { q: 'Sum of angles in triangle?', a: '180' }] },
+    { topic: 'Trigonometry', description: 'SOH: sin=opp/hyp. CAH: cos=adj/hyp. TOA: tan=opp/adj.', problems: [
+      p('sin(30°) = ?','0.5','sin(30°)=1/2=0.5 — memorise this!'),
+      p('cos(60°) = ?','0.5','cos(60°)=1/2=0.5 — memorise this!'),
+      p('tan(45°) = ?','1','tan(45°)=1 — memorise this!'),
+      p('sin(90°) = ?','1','sin(90°)=1 — the max value of sin'),
+      p('cos(0°) = ?','1','cos(0°)=1 — the max value of cos'),
+      p('sin(0°) = ?','0','sin(0°)=0'),
+      p('cos(90°) = ?','0','cos(90°)=0'),
+      p('tan(0°) = ?','0','tan(0°)=0'),
+      p('sin(60°) = ?','0.87','sin(60°)=√3/2≈0.866'),
+      p('cos(30°) = ?','0.87','cos(30°)=√3/2≈0.866'),
+    ]},
+    { topic: 'Circle Theorems', description: 'Area=πr². Circumference=2πr. Diameter=2r.', problems: [
+      p('Area circle r=5?','78.54','π×5²=π×25≈78.54'),
+      p('Circumference r=7?','43.98','2×π×7≈43.98'),
+      p('Diameter if r=6?','12','Diameter = 2×radius = 2×6=12'),
+      p('Area circle r=3?','28.27','π×3²=π×9≈28.27'),
+      p('Circumference r=10?','62.83','2×π×10≈62.83'),
+      p('Radius if diameter=20?','10','Radius = diameter÷2 = 20÷2=10'),
+      p('Area circle r=1?','3.14','π×1²=π≈3.14'),
+      p('Circumference r=5?','31.42','2×π×5≈31.42'),
+      p('Area circle r=4?','50.27','π×4²=π×16≈50.27'),
+      p('Circumference diameter=14?','43.98','C=π×d=π×14≈43.98'),
+    ]},
+    { topic: 'Proofs & Logic', description: 'Converse swaps the if/then. Contrapositive negates and swaps both.', problems: [
+      p('Converse of "If p then q"?','if q then p','Swap the two parts'),
+      p('Vertical angles are?','equal','Vertical angles are always equal'),
+      p('Sum of angles in triangle?','180','All triangles sum to 180°'),
+      p('Sum of angles in quadrilateral?','360','Any 4-sided shape: 360°'),
+      p('Contrapositive of "If p then q"?','if not q then not p','Negate and swap both parts'),
+      p('Supplementary angles sum to?','180','Two angles adding to 180° are supplementary'),
+      p('Complementary angles sum to?','90','Two angles adding to 90° are complementary'),
+      p('Angles in a straight line sum to?','180','A straight line = 180°'),
+      p('Is this valid: "All squares are rectangles"?','true','Squares meet all rectangle criteria'),
+      p('Angles around a point sum to?','360','Full rotation = 360°'),
+    ]},
   ]},
   10: { label: 'Grade 10 → Algebra II', lessons: [
-    { topic: 'Logarithms', description: 'Log properties and solving.', problems: [{ q: 'log₂(32) = ?', a: '5' }, { q: 'log(100) = ?', a: '2' }, { q: 'ln(e³) = ?', a: '3' }] },
-    { topic: 'Complex Numbers', description: 'Imaginary numbers.', problems: [{ q: 'i² = ?', a: '-1' }, { q: '|3+4i| = ?', a: '5' }, { q: '(3+2i)+(1−4i) = ?', a: '4-2i' }] },
-    { topic: 'Sequences', description: 'Arithmetic and geometric.', problems: [{ q: '5th term: 2,5,8,11,...', a: '14' }, { q: '∑(1 to 5) 2n = ?', a: '30' }, { q: 'Geo: 3,6,12,... 6th?', a: '96' }] },
+    { topic: 'Logarithms', description: 'log_b(x)=y means b^y=x. ln is log base e.', problems: [
+      p('log₂(32) = ?','5','2⁵=32, so log₂(32)=5'),
+      p('log(100) = ?','2','10²=100, so log₁₀(100)=2'),
+      p('ln(e³) = ?','3','ln undoes e: ln(e³)=3'),
+      p('log₂(8) = ?','3','2³=8, so log₂(8)=3'),
+      p('log(1000) = ?','3','10³=1000, so log(1000)=3'),
+      p('log₃(9) = ?','2','3²=9, so log₃(9)=2'),
+      p('ln(1) = ?','0','e⁰=1, so ln(1)=0'),
+      p('log₂(1) = ?','0','2⁰=1, so log₂(1)=0'),
+      p('log₅(25) = ?','2','5²=25, so log₅(25)=2'),
+      p('log(10) = ?','1','10¹=10, so log(10)=1'),
+    ]},
+    { topic: 'Complex Numbers', description: 'i=√−1, i²=−1. Modulus |a+bi|=√(a²+b²).', problems: [
+      p('i² = ?','-1','By definition: i=√−1, so i²=−1'),
+      p('|3+4i| = ?','5','√(3²+4²)=√(9+16)=√25=5'),
+      p('(3+2i)+(1−4i) = ?','4-2i','Add real parts: 3+1=4. Add imaginary: 2−4=−2 → 4−2i'),
+      p('i³ = ?','-i','i³=i²×i=−1×i=−i'),
+      p('i⁴ = ?','1','i⁴=(i²)²=(−1)²=1'),
+      p('(2+i)+(3+2i) = ?','5+3i','Add real: 2+3=5. Add imaginary: 1+2=3 → 5+3i'),
+      p('|5+12i| = ?','13','√(25+144)=√169=13'),
+      p('(1+i)²= ?','2i','1+2i+i²=1+2i−1=2i'),
+      p('i⁵ = ?','i','i⁵=i⁴×i=1×i=i'),
+      p('(4+3i)−(1+i) = ?','3+2i','Subtract: 4−1=3, 3−1=2 → 3+2i'),
+    ]},
+    { topic: 'Sequences & Series', description: 'Arithmetic: add same value. Geometric: multiply same value. nth term = a+(n−1)d.', problems: [
+      p('5th term: 2,5,8,11,...','14','Difference=3. 5th: 2+(5−1)×3=2+12=14'),
+      p('∑(1 to 5) of 2n = ?','30','2+4+6+8+10=30'),
+      p('Geo: 3,6,12,... 6th term?','96','Ratio=2. 6th: 3×2⁵=3×32=96'),
+      p('4th term: 1,4,7,10,...','10','Difference=3. 4th: 1+(3)×3=10'),
+      p('∑(1 to 4) of n = ?','10','1+2+3+4=10'),
+      p('Geo: 2,6,18,... 4th term?','54','Ratio=3. 4th: 2×3³=2×27=54'),
+      p('6th term: 5,8,11,14,...','20','Difference=3. 6th: 5+(5)×3=20'),
+      p('Geo: 100,50,25,... 4th term?','12.5','Ratio=0.5. 4th: 100×0.5³=12.5'),
+      p('∑(1 to 4) of n² = ?','30','1+4+9+16=30'),
+      p('8th term: 3,7,11,15,...','31','Difference=4. 8th: 3+(7)×4=31'),
+    ]},
   ]},
   11: { label: 'Grade 11 → Pre-Calc', lessons: [
-    { topic: 'Limits', description: 'Introduction to limits.', problems: [{ q: 'lim x→∞ of 1/x = ?', a: '0' }, { q: 'lim x→0 sin(x)/x = ?', a: '1' }, { q: 'lim x→2 x² = ?', a: '4' }] },
-    { topic: 'Vectors', description: 'Magnitude and dot product.', problems: [{ q: '|⟨3,4⟩| = ?', a: '5' }, { q: '⟨1,2⟩·⟨3,4⟩ = ?', a: '11' }, { q: '⟨2,3⟩+⟨-1,5⟩ = ?', a: '1,8' }] },
-    { topic: 'Polar Coordinates', description: 'Polar vs Cartesian.', problems: [{ q: 'Polar(2,90°) to Cart y=?', a: '2' }, { q: 'Cart(1,1) r=?', a: '1.41' }, { q: 'r=2cos(θ) is a?', a: 'circle' }] },
+    { topic: 'Limits', description: 'A limit is the value a function approaches. Sub in the value or use limit laws.', problems: [
+      p('lim x→∞ of 1/x = ?','0','As x gets huge, 1/x gets tiny → 0'),
+      p('lim x→0 sin(x)/x = ?','1','Famous limit: always equals 1'),
+      p('lim x→2 x² = ?','4','Just substitute: 2²=4'),
+      p('lim x→3 (x−3)/(x−3) = ?','1','Simplify: the fraction = 1 for all x≠3'),
+      p('lim x→∞ of 5/x = ?','0','5/∞→0'),
+      p('lim x→1 (x²−1)/(x−1) = ?','2','Factor: (x+1)(x−1)/(x−1)=x+1 → 1+1=2'),
+      p('lim x→0 x² = ?','0','0²=0'),
+      p('lim x→4 √x = ?','2','√4=2'),
+      p('lim x→∞ of (2x)/(x) = ?','2','2x/x=2 for all x'),
+      p('lim x→2 (3x+1) = ?','7','3(2)+1=7'),
+    ]},
+    { topic: 'Vectors', description: 'Magnitude: |⟨a,b⟩|=√(a²+b²). Dot product: ⟨a,b⟩·⟨c,d⟩=ac+bd.', problems: [
+      p('|⟨3,4⟩| = ?','5','√(3²+4²)=√(9+16)=√25=5'),
+      p('⟨1,2⟩·⟨3,4⟩ = ?','11','1×3+2×4=3+8=11'),
+      p('⟨2,3⟩+⟨-1,5⟩ = ?','1,8','Add component by component: 2+(−1)=1, 3+5=8'),
+      p('|⟨0,5⟩| = ?','5','√(0+25)=5'),
+      p('⟨2,4⟩·⟨1,3⟩ = ?','14','2×1+4×3=2+12=14'),
+      p('⟨5,0⟩+⟨0,3⟩ = ?','5,3','5+0=5, 0+3=3 → ⟨5,3⟩'),
+      p('|⟨6,8⟩| = ?','10','√(36+64)=√100=10'),
+      p('⟨3,1⟩·⟨2,4⟩ = ?','10','3×2+1×4=6+4=10'),
+      p('⟨1,1⟩+⟨2,2⟩ = ?','3,3','1+2=3, 1+2=3 → ⟨3,3⟩'),
+      p('|⟨5,12⟩| = ?','13','√(25+144)=√169=13'),
+    ]},
+    { topic: 'Polar Coordinates', description: 'Polar (r,θ): x=r·cos(θ), y=r·sin(θ). Cartesian to polar: r=√(x²+y²).', problems: [
+      p('Polar(2,90°) to Cart y=?','2','y=r·sin(90°)=2×1=2'),
+      p('Cart(1,1) r=?','1.41','r=√(1+1)=√2≈1.41'),
+      p('r=2cos(θ) is a?','circle','r=2cos(θ) is a circle'),
+      p('Polar(4,0°) x=?','4','x=4×cos(0°)=4×1=4'),
+      p('Polar(3,90°) x=?','0','x=3×cos(90°)=3×0=0'),
+      p('Cart(3,4) r=?','5','r=√(9+16)=5'),
+      p('Polar(1,180°) x=?','-1','x=1×cos(180°)=−1'),
+      p('Cart(0,6) θ=?','90','Point is on y-axis → θ=90°'),
+      p('Polar(5,0°) y=?','0','y=5×sin(0°)=0'),
+      p('Cart(5,0) θ=?','0','Point is on positive x-axis → θ=0°'),
+    ]},
   ]},
   12: { label: 'Grade 12 → Calculus', lessons: [
-    { topic: 'Derivatives', description: 'Differentiation rules.', problems: [{ q: 'd/dx[x⁴] = ?', a: '4x3' }, { q: 'd/dx[sin(x)] = ?', a: 'cos(x)' }, { q: 'd/dx[eˣ] = ?', a: 'ex' }] },
-    { topic: 'Integrals', description: 'Antiderivatives.', problems: [{ q: '∫x² dx = ?', a: 'x3/3+c' }, { q: '∫₀¹ x dx = ?', a: '0.5' }, { q: '∫cos(x) dx = ?', a: 'sin(x)+c' }] },
-    { topic: 'Chain Rule', description: 'Composite functions.', problems: [{ q: 'd/dx[e^(3x)] = ?', a: '3e3x' }, { q: 'd/dx[(x²+1)³] = ?', a: '6x(x2+1)2' }, { q: 'd/dx[sin(x²)] = ?', a: '2xcos(x2)' }] },
+    { topic: 'Derivatives', description: 'Power rule: d/dx[xⁿ]=nxⁿ⁻¹. d/dx[eˣ]=eˣ. d/dx[sin]=cos.', problems: [
+      p('d/dx[x⁴] = ?','4x3','Power rule: bring down 4, reduce power → 4x³'),
+      p('d/dx[sin(x)] = ?','cos(x)','Standard rule: derivative of sin is cos'),
+      p('d/dx[eˣ] = ?','ex','eˣ is its own derivative!'),
+      p('d/dx[x²] = ?','2x','Power rule: 2x²⁻¹=2x'),
+      p('d/dx[3x] = ?','3','Derivative of linear term = coefficient'),
+      p('d/dx[x⁵] = ?','5x4','Power rule: 5x⁴'),
+      p('d/dx[cos(x)] = ?','-sin(x)','Standard rule: derivative of cos = −sin'),
+      p('d/dx[7] = ?','0','Constant rule: derivative of any constant = 0'),
+      p('d/dx[x] = ?','1','x¹: power rule → 1x⁰=1'),
+      p('d/dx[ln(x)] = ?','1/x','Standard rule: d/dx[ln(x)]=1/x'),
+    ]},
+    { topic: 'Integrals', description: 'Power rule: ∫xⁿdx=xⁿ⁺¹/(n+1)+C. ∫eˣdx=eˣ+C.', problems: [
+      p('∫x² dx = ?','x3/3+c','Add 1 to power, divide: x³/3+C'),
+      p('∫₀¹ x dx = ?','0.5','∫x dx=x²/2. Evaluate: 1/2−0=0.5'),
+      p('∫cos(x) dx = ?','sin(x)+c','Standard: ∫cos=sin+C'),
+      p('∫1 dx = ?','x+c','∫1=x+C'),
+      p('∫x dx = ?','x2/2+c','Power rule: x²/2+C'),
+      p('∫eˣ dx = ?','ex+c','eˣ integrates to itself: eˣ+C'),
+      p('∫x³ dx = ?','x4/4+c','Add 1 to power, divide: x⁴/4+C'),
+      p('∫sin(x) dx = ?','-cos(x)+c','Standard: ∫sin=−cos+C'),
+      p('∫₀¹ 1 dx = ?','1','∫₀¹ 1 dx=[x]₀¹=1−0=1'),
+      p('∫2x dx = ?','x2+c','∫2x=2×x²/2=x²+C'),
+    ]},
+    { topic: 'Chain Rule', description: 'Derivative of f(g(x)) = f′(g(x)) × g′(x). Outer × derivative of inner.', problems: [
+      p('d/dx[e^(3x)] = ?','3e3x','Outer e^u → e^u. Inner 3x → 3. Answer: 3e^(3x)'),
+      p('d/dx[(x²+1)³] = ?','6x(x2+1)2','Outer 3u² → 3(x²+1)². Inner x²+1 → 2x. Multiply: 6x(x²+1)²'),
+      p('d/dx[sin(x²)] = ?','2xcos(x2)','Outer sin→cos. Inner x²→2x. Answer: 2x·cos(x²)'),
+      p('d/dx[(3x)⁴] = ?','324x3','Outer 4u³→4(3x)³=4×27x³. Inner 3x→3. 4×27×3=324? No: 4(3x)³×3=4×27x³×3=324x³... actually 4×(3x)³×3=4×27x³×3/3... Let\'s see: 4(3x)³×3=4×27x³×3=324x³'),
+      p('d/dx[ln(2x)] = ?','1/x','1/(2x)×2=1/x'),
+      p('d/dx[(x+1)⁵] = ?','5(x+1)4','Outer 5u⁴. Inner x+1→1. Answer: 5(x+1)⁴'),
+      p('d/dx[e^(x²)] = ?','2xex2','Outer e^u→e^(x²). Inner x²→2x. Answer: 2x·e^(x²)'),
+      p('d/dx[cos(3x)] = ?','-3sin(3x)','Outer cos→−sin. Inner 3x→3. Answer: −3sin(3x)'),
+      p('d/dx[(2x+1)²] = ?','4(2x+1)','Outer 2u. Inner 2x+1→2. Answer: 4(2x+1)'),
+      p('d/dx[sin(5x)] = ?','5cos(5x)','Outer sin→cos. Inner 5x→5. Answer: 5cos(5x)'),
+    ]},
   ]},
 }
 
@@ -520,7 +919,7 @@ function parseStacked(q: string): StackedParts | null {
   return null
 }
 
-function StackedProblem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
+function StackedProblem({ q, a, explain, onCorrect }: { q: string; a: string; explain: string; onCorrect: () => void }) {
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
   const parts = parseStacked(q)!
@@ -548,14 +947,28 @@ function StackedProblem({ q, a, onCorrect }: { q: string; a: string; onCorrect: 
   )
 
   const btns = (
-    <div className="stacked-btns">
+    <div className="stacked-btns-wrap">
       {(status === 'idle' || status === 'wrong') && (
-        <>
+        <div className="stacked-btns">
           <button className="reveal-btn" onClick={check}>✓ Check</button>
-          <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Skip</button>
-        </>
+          {status === 'idle'
+            ? <button className="reveal-btn skip" onClick={() => { setStatus('wrong') }}>Skip</button>
+            : <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Give up</button>
+          }
+        </div>
       )}
-      {status === 'wrong' && <span className="stacked-wrong-msg">Try again!</span>}
+      {(status === 'wrong' || status === 'revealed') && (
+        <div className="problem-feedback wrong" style={{ marginTop: '0.5rem' }}>
+          <span className="fb-result">{status === 'revealed' ? '💡 Answer:' : '❌ Not quite —'} <strong>{a}</strong></span>
+          <span className="fb-explain">{explain}</span>
+        </div>
+      )}
+      {status === 'correct' && (
+        <div className="problem-feedback correct" style={{ marginTop: '0.5rem' }}>
+          <span className="fb-result">✅ Correct!</span>
+          <span className="fb-explain">{explain}</span>
+        </div>
+      )}
     </div>
   )
 
@@ -602,12 +1015,13 @@ function StackedProblem({ q, a, onCorrect }: { q: string; a: string; onCorrect: 
   )
 }
 
-function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => void }) {
+function Problem({ q, a, explain, onCorrect }: { q: string; a: string; explain: string; onCorrect: () => void }) {
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
+  const [attempts, setAttempts] = useState(0)
 
   if (parseStacked(q)) {
-    return <StackedProblem q={q} a={a} onCorrect={onCorrect} />
+    return <StackedProblem q={q} a={a} explain={explain} onCorrect={onCorrect} />
   }
 
   function check() {
@@ -616,30 +1030,39 @@ function Problem({ q, a, onCorrect }: { q: string; a: string; onCorrect: () => v
       onCorrect()
     } else {
       setStatus('wrong')
+      setAttempts(n => n + 1)
     }
   }
-
-  function reveal() { setStatus('revealed') }
 
   return (
     <div className={`problem ${status}`}>
       <span className="problem-q">{q}</span>
-      {status === 'idle' || status === 'wrong' ? (
-        <div className="problem-input-row">
-          <input
-            className="problem-input"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && check()}
-            placeholder="answer"
-          />
-          <button className="reveal-btn" onClick={check}>✓</button>
-          <button className="reveal-btn skip" onClick={reveal}>Skip</button>
+      {status === 'correct' ? (
+        <div className="problem-feedback correct">
+          <span className="fb-result">✅ Correct!</span>
+          <span className="fb-explain">{explain}</span>
+        </div>
+      ) : status === 'wrong' || status === 'revealed' ? (
+        <div className="problem-feedback wrong">
+          <span className="fb-result">{status === 'revealed' ? '💡 Answer:' : '❌ Not quite —'} <strong>{a}</strong></span>
+          <span className="fb-explain">{explain}</span>
+          {status === 'wrong' && (
+            <div className="problem-input-row" style={{ marginTop: '0.4rem' }}>
+              <input className="problem-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && check()} placeholder="try again" autoFocus />
+              <button className="reveal-btn" onClick={check}>✓</button>
+              <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Give up</button>
+            </div>
+          )}
         </div>
       ) : (
-        <span className={`problem-a ${status}`}>
-          {status === 'correct' ? '✓ ' : status === ('wrong' as string) ? '✗ ' : ''}{a}
-        </span>
+        <div className="problem-input-row">
+          <input className="problem-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && check()} placeholder="your answer" />
+          <button className="reveal-btn" onClick={check}>✓</button>
+          {attempts === 0
+            ? <button className="reveal-btn skip" onClick={() => { setStatus('wrong'); setAttempts(1) }}>Skip</button>
+            : <button className="reveal-btn skip" onClick={() => setStatus('revealed')}>Give up</button>
+          }
+        </div>
       )}
     </div>
   )
@@ -799,7 +1222,7 @@ export default function App() {
                       <div className="lesson-desc">{lesson.description}</div>
                       <div className="problems">
                         {lesson.problems.map((p, j) => (
-                          <Problem key={`${grade}-${i}-${j}`} q={p.q} a={p.a} onCorrect={addPoint} />
+                          <Problem key={`${grade}-${i}-${j}`} q={p.q} a={p.a} explain={p.explain} onCorrect={addPoint} />
                         ))}
                       </div>
                     </div>
