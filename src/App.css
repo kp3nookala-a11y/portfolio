@@ -500,6 +500,104 @@ body {
 .game-over h2 { font-size: 3rem; color: #ff6b6b; }
 .game-over p { font-size: 1.5rem; color: #fbbf24; }
 
+/* ── Game Arcade ── */
+.arcade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+  padding: 2rem;
+  align-content: center;
+  flex: 1;
+}
+.arcade-card {
+  background: #111a3e;
+  border: 2px solid #1e2f6e;
+  border-radius: 16px;
+  padding: 1.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.arcade-card:hover { border-color: #4a7fff; transform: translateY(-4px); box-shadow: 0 8px 24px #4a7fff33; }
+.arcade-icon { font-size: 3rem; }
+.arcade-name { font-size: 1.2rem; font-weight: 700; color: #c5deff; }
+.arcade-desc { font-size: 0.82rem; color: #4a6fa5; line-height: 1.5; }
+.arcade-play { margin-top: 0.5rem; font-size: 0.9rem; font-weight: 700; color: #4a7fff; }
+
+/* ── Speed Round ── */
+.speed-progress { display: flex; gap: 0.4rem; }
+.speed-dot { width: 14px; height: 14px; border-radius: 50%; background: #1e2f6e; border: 2px solid #2a3f7e; transition: all 0.2s; }
+.speed-dot.done { background: #64ffb4; border-color: #64ffb4; }
+.speed-dot.active { background: #4a7fff; border-color: #7eb8ff; transform: scale(1.3); }
+.speed-question { font-size: 3rem; font-weight: 800; color: #fff; font-family: 'Courier New', monospace; }
+.game-input.wrong { border-color: #ff6b6b; animation: shake 0.3s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* ── Quiz Show ── */
+.quiz-arena {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+.quiz-timer-bar { width: 100%; max-width: 600px; height: 8px; background: #1e2f6e; border-radius: 99px; overflow: hidden; }
+.quiz-timer-fill { height: 100%; border-radius: 99px; transition: width 1s linear, background 0.3s; }
+.quiz-question { font-size: 2.5rem; font-weight: 800; color: #fff; font-family: 'Courier New', monospace; text-align: center; }
+.quiz-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; max-width: 500px; }
+.quiz-choice {
+  padding: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  border-radius: 14px;
+  border: 2px solid #2a3f7e;
+  background: #111a3e;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quiz-choice:hover:not(:disabled) { border-color: #4a7fff; background: #1a2a5e; transform: scale(1.04); }
+.quiz-choice.correct { background: #0a2c1a; border-color: #64ffb4; color: #64ffb4; }
+.quiz-choice.wrong   { background: #2c0a0a; border-color: #ff6b6b; color: #ff6b6b; }
+.quiz-choice.dim     { opacity: 0.35; }
+
+/* ── Number Ninja ── */
+.ninja-arena {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  width: 100%;
+}
+.ninja-question { font-size: 3rem; font-weight: 800; color: #fff; font-family: 'Courier New', monospace; }
+.ninja-choices { display: flex; gap: 1.25rem; flex-wrap: wrap; justify-content: center; }
+.ninja-choice {
+  padding: 1.5rem 2.5rem;
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  border-radius: 16px;
+  border: 3px solid #2a3f7e;
+  background: #111a3e;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 120px;
+  text-align: center;
+}
+.ninja-choice:hover:not(:disabled) { border-color: #4a7fff; transform: scale(1.08); box-shadow: 0 0 20px #4a7fff55; }
+.ninja-combo { font-size: 1.3rem; font-weight: 800; color: #fbbf24; animation: popIn 0.3s ease; }
+
 /* ── Directions ── */
 .directions {
   background: rgba(10,15,44,0.8);

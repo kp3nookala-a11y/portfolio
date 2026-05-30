@@ -1068,6 +1068,288 @@ function Problem({ q, a, explain, onCorrect }: { q: string; a: string; explain: 
   )
 }
 
+// ── Shared game problem generator ──────────────────────────
+function makeGameProblem(): { q: string; a: number } {
+  const ops = [
+    () => { const a=Math.floor(Math.random()*12)+1,b=Math.floor(Math.random()*12)+1; return {q:`${a} × ${b}`,a:a*b} },
+    () => { const a=Math.floor(Math.random()*30)+10,b=Math.floor(Math.random()*30)+10; return {q:`${a} + ${b}`,a:a+b} },
+    () => { const a=Math.floor(Math.random()*30)+20,b=Math.floor(Math.random()*20)+1; return {q:`${a} − ${b}`,a:a-b} },
+    () => { const b=Math.floor(Math.random()*9)+2,a=b*(Math.floor(Math.random()*10)+1); return {q:`${a} ÷ ${b}`,a:a/b} },
+  ]
+  return ops[Math.floor(Math.random()*ops.length)]()
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5)
+}
+
+// ── Game 2: Speed Round ─────────────────────────────────────
+function SpeedRound({ onClose }: { onClose: () => void }) {
+  const TOTAL = 10
+  const [problems] = useState(() => Array.from({length:TOTAL}, makeGameProblem))
+  const [idx, setIdx] = useState(0)
+  const [input, setInput] = useState('')
+  const [wrong, setWrong] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+  const [done, setDone] = useState(false)
+  const [best, setBest] = useState(() => { try { return parseFloat(localStorage.getItem('speed-best') || '0') || null } catch { return null } })
+  const startRef = useRef(Date.now())
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { if (done) return; const t = setInterval(() => setElapsed(Date.now()-startRef.current), 100); return () => clearInterval(t) }, [done])
+  useEffect(() => { inputRef.current?.focus() }, [idx])
+
+  function submit() {
+    const val = parseFloat(input.trim())
+    if (Math.abs(val - problems[idx].a) < 0.01) {
+      setWrong(false); setInput('')
+      const next = idx + 1
+      if (next >= TOTAL) {
+        const secs = (Date.now()-startRef.current)/1000
+        setDone(true); setElapsed(Date.now()-startRef.current)
+        if (!best || secs < best) { setBest(secs); localStorage.setItem('speed-best', String(secs)) }
+      } else setIdx(next)
+    } else { setWrong(true) }
+  }
+
+  const secs = (elapsed/1000).toFixed(1)
+  const bestStr = best ? `${best.toFixed(1)}s` : '—'
+
+  return (
+    <div className="game-overlay">
+      <div className="game-header">
+        <span>⚡ Speed Round</span>
+        <span>{idx}/{TOTAL} done</span>
+        <span>⏱ {secs}s</span>
+        <span>🏆 Best: {bestStr}</span>
+        <button className="close-btn" onClick={onClose}>✕</button>
+      </div>
+      {done ? (
+        <div className="game-over">
+          <h2>🎉 Done!</h2>
+          <p>Time: <strong>{secs}s</strong></p>
+          {best && parseFloat(secs) <= best && <p style={{color:'#fbbf24'}}>🏆 New best time!</p>}
+          <div style={{display:'flex',gap:'1rem',marginTop:'1rem'}}>
+            <button className="grade-btn active" onClick={() => { setIdx(0); setInput(''); setWrong(false); setDone(false); startRef.current=Date.now() }}>Play Again</button>
+            <button className="grade-btn" onClick={onClose}>Exit</button>
+          </div>
+        </div>
+      ) : (
+        <div className="game-arena" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'2rem'}}>
+          <div className="speed-progress">
+            {problems.map((_,i) => <div key={i} className={`speed-dot ${i<idx?'done':i===idx?'active':''}`} />)}
+          </div>
+          <div className="speed-question">{problems[idx].q} = ?</div>
+          <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+            <input ref={inputRef} className={`game-input ${wrong?'wrong':''}`} value={input} onChange={e=>{setInput(e.target.value);setWrong(false)}} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Answer" autoFocus />
+            <button className="grade-btn active" onClick={submit}>✓</button>
+          </div>
+          {wrong && <div style={{color:'#ff6b6b',fontWeight:700}}>❌ Try again!</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Game 3: Quiz Show ───────────────────────────────────────
+function QuizShow({ onClose }: { onClose: () => void }) {
+  const TOTAL = 10, TIME = 20
+  const [score, setScore] = useState(0)
+  const [qNum, setQNum] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(TIME)
+  const [chosen, setChosen] = useState<number|null>(null)
+  const [done, setDone] = useState(false)
+  const [current, setCurrent] = useState(() => genQuizQ())
+
+  function genQuizQ() {
+    const {q,a} = makeGameProblem()
+    const wrongs = new Set<number>()
+    while(wrongs.size < 3) {
+      const w = a + Math.floor(Math.random()*10)-5
+      if (w !== a) wrongs.add(w)
+    }
+    return { q, a, choices: shuffle([a,...Array.from(wrongs)]) }
+  }
+
+  useEffect(() => {
+    if (done || chosen !== null) return
+    if (timeLeft <= 0) { nextQ(false); return }
+    const t = setTimeout(() => setTimeLeft(s=>s-1), 1000)
+    return () => clearTimeout(t)
+  }, [timeLeft, done, chosen])
+
+  function pick(c: number) {
+    if (chosen !== null) return
+    setChosen(c)
+    if (c === current.a) setScore(s=>s+1)
+    setTimeout(() => nextQ(true), 900)
+  }
+
+  function nextQ(_answered: boolean) {
+    const next = qNum + 1
+    if (next >= TOTAL) { setDone(true); return }
+    setQNum(next); setChosen(null); setTimeLeft(TIME); setCurrent(genQuizQ())
+  }
+
+  const pct = (timeLeft/TIME)*100
+
+  return (
+    <div className="game-overlay">
+      <div className="game-header">
+        <span>🎯 Quiz Show</span>
+        <span>Q {qNum+1}/{TOTAL}</span>
+        <span>⭐ {score}</span>
+        <button className="close-btn" onClick={onClose}>✕</button>
+      </div>
+      {done ? (
+        <div className="game-over">
+          <h2>{score>=8?'🏆 Amazing!':score>=5?'👍 Good job!':'📚 Keep practicing!'}</h2>
+          <p>{score} / {TOTAL} correct</p>
+          <div style={{display:'flex',gap:'1rem',marginTop:'1rem'}}>
+            <button className="grade-btn active" onClick={() => { setScore(0);setQNum(0);setChosen(null);setTimeLeft(TIME);setDone(false);setCurrent(genQuizQ()) }}>Play Again</button>
+            <button className="grade-btn" onClick={onClose}>Exit</button>
+          </div>
+        </div>
+      ) : (
+        <div className="quiz-arena">
+          <div className="quiz-timer-bar"><div className="quiz-timer-fill" style={{width:`${pct}%`,background:pct>50?'#64ffb4':pct>25?'#fbbf24':'#ff6b6b'}} /></div>
+          <div className="quiz-question">{current.q} = ?</div>
+          <div className="quiz-choices">
+            {current.choices.map((c,i) => (
+              <button key={i}
+                className={`quiz-choice ${chosen!==null?(c===current.a?'correct':c===chosen?'wrong':'dim'):''}`}
+                onClick={() => pick(c)}
+                disabled={chosen !== null}
+              >{c}</button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Game 4: Number Ninja ────────────────────────────────────
+function NumberNinja({ onClose }: { onClose: () => void }) {
+  const TIME_PER_Q = 8
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [lives, setLives] = useState(3)
+  const [timeLeft, setTimeLeft] = useState(TIME_PER_Q)
+  const [flash, setFlash] = useState<'correct'|'wrong'|null>(null)
+  const [gameOver, setGameOver] = useState(false)
+  const [current, setCurrent] = useState(() => genNinjaQ())
+
+  function genNinjaQ() {
+    const {q,a} = makeGameProblem()
+    const wrongs = new Set<number>()
+    while(wrongs.size < 2) {
+      const off = Math.floor(Math.random()*8)+1
+      const w = Math.random()<0.5 ? a+off : a-off
+      if (w !== a && w > 0) wrongs.add(w)
+    }
+    return { q, a, choices: shuffle([a,...Array.from(wrongs)]) }
+  }
+
+  function next() { setCurrent(genNinjaQ()); setTimeLeft(TIME_PER_Q) }
+
+  useEffect(() => {
+    if (gameOver || flash) return
+    if (timeLeft <= 0) { miss(); return }
+    const t = setTimeout(() => setTimeLeft(s=>s-1), 1000)
+    return () => clearTimeout(t)
+  }, [timeLeft, gameOver, flash])
+
+  function pick(c: number) {
+    if (flash) return
+    if (c === current.a) {
+      const mult = streak >= 4 ? 3 : streak >= 2 ? 2 : 1
+      setScore(s=>s+10*mult); setStreak(s=>s+1)
+      setFlash('correct'); setTimeout(() => { setFlash(null); next() }, 600)
+    } else {
+      miss()
+    }
+  }
+
+  function miss() {
+    setStreak(0); setFlash('wrong')
+    setLives(l => { const n=l-1; if(n<=0) setGameOver(true); return Math.max(0,n) })
+    setTimeout(() => { setFlash(null); if(!gameOver) next() }, 800)
+  }
+
+  const pct = (timeLeft/TIME_PER_Q)*100
+
+  return (
+    <div className={`game-overlay ${flash==='correct'?'flash-correct':flash==='wrong'?'flash-wrong':''}`}>
+      <div className="game-header">
+        <span>🥷 Number Ninja</span>
+        <span>⭐ {score}</span>
+        <span>{streak>=2?`🔥×${streak>=4?3:2} combo!`:''}</span>
+        <span>{'❤️'.repeat(lives)}</span>
+        <button className="close-btn" onClick={onClose}>✕</button>
+      </div>
+      {gameOver ? (
+        <div className="game-over">
+          <h2>🥷 {score>=100?'Ninja Master!':score>=50?'Ninja!':'Trainee'}</h2>
+          <p>Score: {score}</p>
+          <div style={{display:'flex',gap:'1rem',marginTop:'1rem'}}>
+            <button className="grade-btn active" onClick={() => { setScore(0);setStreak(0);setLives(3);setTimeLeft(TIME_PER_Q);setFlash(null);setGameOver(false);setCurrent(genNinjaQ()) }}>Play Again</button>
+            <button className="grade-btn" onClick={onClose}>Exit</button>
+          </div>
+        </div>
+      ) : (
+        <div className="ninja-arena">
+          <div className="quiz-timer-bar"><div className="quiz-timer-fill" style={{width:`${pct}%`,background:pct>60?'#64ffb4':pct>30?'#fbbf24':'#ff6b6b'}} /></div>
+          <div className="ninja-question">{current.q} = ?</div>
+          <div className="ninja-choices">
+            {current.choices.map((c,i) => (
+              <button key={i} className="ninja-choice" onClick={() => pick(c)} disabled={!!flash}>{c}</button>
+            ))}
+          </div>
+          {streak >= 2 && <div className="ninja-combo">🔥 {streak} combo! ×{streak>=4?3:2}</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Game Arcade ─────────────────────────────────────────────
+type GameId = 'blaster' | 'speed' | 'quiz' | 'ninja'
+function GameArcade({ onClose }: { onClose: () => void }) {
+  const [active, setActive] = useState<GameId|null>(null)
+
+  if (active === 'blaster') return <MathGame onClose={() => setActive(null)} />
+  if (active === 'speed')   return <SpeedRound onClose={() => setActive(null)} />
+  if (active === 'quiz')    return <QuizShow onClose={() => setActive(null)} />
+  if (active === 'ninja')   return <NumberNinja onClose={() => setActive(null)} />
+
+  const games = [
+    { id:'blaster' as GameId, icon:'💥', name:'Math Blaster', desc:'Blast falling equations before they hit the ground. 3 lives.' },
+    { id:'speed'   as GameId, icon:'⚡', name:'Speed Round',  desc:'Answer 10 problems as fast as possible. Beat your best time!' },
+    { id:'quiz'    as GameId, icon:'🎯', name:'Quiz Show',    desc:'10 multiple-choice questions. 20 seconds per question.' },
+    { id:'ninja'   as GameId, icon:'🥷', name:'Number Ninja', desc:'3 choices, 8 seconds each. Build combos for bonus points!' },
+  ]
+
+  return (
+    <div className="game-overlay">
+      <div className="game-header">
+        <span>🎮 Game Arcade</span>
+        <button className="close-btn" onClick={onClose}>✕</button>
+      </div>
+      <div className="arcade-grid">
+        {games.map(g => (
+          <button key={g.id} className="arcade-card" onClick={() => setActive(g.id)}>
+            <div className="arcade-icon">{g.icon}</div>
+            <div className="arcade-name">{g.name}</div>
+            <div className="arcade-desc">{g.desc}</div>
+            <div className="arcade-play">Play →</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Main App ───────────────────────────────────────────────
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => {
@@ -1115,7 +1397,7 @@ export default function App() {
 
   return (
     <div className="page">
-      {showGame && <MathGame onClose={() => setShowGame(false)} />}
+      {showGame && <GameArcade onClose={() => setShowGame(false)} />}
 
       <div className="bg">
         {floaters.map((f, i) => (
