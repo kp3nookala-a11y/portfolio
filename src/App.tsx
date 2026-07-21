@@ -1843,7 +1843,19 @@ export default function App() {
         )}
       </div>
 
-      {authUser?.email === ADMIN_EMAIL && !adminClosed && <AdminPanel onClose={() => setAdminClosed(true)} />}
+      {authUser?.email === ADMIN_EMAIL && (
+        <>
+          {!adminClosed && <AdminPanel onClose={() => setAdminClosed(true)} />}
+          {adminClosed && (
+            <div
+              onClick={() => setAdminClosed(false)}
+              style={{ position: 'fixed', bottom: '1rem', left: '1rem', zIndex: 300, background: 'rgba(26,58,107,0.85)', color: '#fff', borderRadius: '12px', padding: '0.4rem 0.8rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 700 }}
+            >
+              🛡️ Admin
+            </div>
+          )}
+        </>
+      )}
 
       <div className="main">
         <div className="hero-card">
