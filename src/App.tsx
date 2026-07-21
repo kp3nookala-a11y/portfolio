@@ -1682,11 +1682,7 @@ function AdminPanel({ onClose }: { onClose: () => void }) {
 
 export default function App() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
-  const [showAdmin, setShowAdmin] = useState(false)
-
-  useEffect(() => {
-    if (authUser?.email === ADMIN_EMAIL) setShowAdmin(true)
-  }, [authUser])
+  const [adminClosed, setAdminClosed] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [showAuthPanel, setShowAuthPanel] = useState(false)
 
@@ -1847,7 +1843,7 @@ export default function App() {
         )}
       </div>
 
-      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+      {authUser?.email === ADMIN_EMAIL && !adminClosed && <AdminPanel onClose={() => setAdminClosed(true)} />}
 
       <div className="main">
         <div className="hero-card">
