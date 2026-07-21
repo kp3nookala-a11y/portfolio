@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import './App.css'
+import { generateLesson } from './generators'
 
 const expressions = [
   '12 × 13 = 156', '√144 = 12', '∫x² dx', '7! = 5040', 'log₂(64) = 6',
@@ -631,6 +632,7 @@ type AIFeedback = {
   tip: string
 }
 
+// @ts-ignore
 function StudyMode({ onCorrect }: { onCorrect: () => void }) {
   const [grade, setGrade] = useState<number>(6)
   const [topic, setTopic] = useState<string>(topics[6][0])
@@ -797,17 +799,93 @@ function StudyMode({ onCorrect }: { onCorrect: () => void }) {
 // ── Profile ────────────────────────────────────────────────
 const AVATARS = ['🧑‍🎓','👦','👧','🧒','👨‍💻','👩‍💻','🦸','🧙','🐱','🦊','🐼','🚀']
 
+const BAD_WORDS = [
+  'fuck','shit','ass','bitch','cunt','dick','cock','pussy','bastard','damn','hell',
+  'piss','crap','slut','whore','nigger','nigga','fag','faggot','retard','rape',
+  'sex','porn','nude','naked','kill','die','hate','stupid','idiot','loser',
+  'boob','butt','penis','vagina','asshole','motherfucker','fucker','bullshit',
+]
+
+function containsBadWord(text: string): boolean {
+  const lower = text.toLowerCase().replace(/[^a-z]/g, '')
+  return BAD_WORDS.some(word => lower.includes(word))
+}
+
 type Profile = { name: string; grade: number; avatar: string }
 
 function ProfileSetup({ onSave }: { onSave: (p: Profile) => void }) {
   const [name, setName] = useState('')
   const [grade, setGrade] = useState(6)
   const [avatar, setAvatar] = useState(AVATARS[0])
+  const [nameError, setNameError] = useState('')
+  const [photoMode, setPhotoMode] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   function save() {
     if (!name.trim()) return
+    if (containsBadWord(name)) {
+      setNameError('Please choose a appropriate name.')
+      return
+    }
+    setNameError('')
     onSave({ name: name.trim(), grade, avatar })
   }
+
+  async function openCamera() {
+    setPhotoMode(true)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      streamRef.current = stream
+      if (videoRef.current) videoRef.current.srcObject = stream
+    } catch {
+      alert('Could not access camera. Try uploading a photo instead.')
+      setPhotoMode(false)
+    }
+  }
+
+  function takePhoto() {
+    if (!videoRef.current || !canvasRef.current) return
+    const canvas = canvasRef.current
+    canvas.width = 200
+    canvas.height = 200
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(videoRef.current, 0, 0, 200, 200)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+    setAvatar(dataUrl)
+    stopCamera()
+  }
+
+  function stopCamera() {
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+    setPhotoMode(false)
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = 200
+        canvas.height = 200
+        const ctx = canvas.getContext('2d')!
+        const size = Math.min(img.width, img.height)
+        const x = (img.width - size) / 2
+        const y = (img.height - size) / 2
+        ctx.drawImage(img, x, y, size, size, 0, 0, 200, 200)
+        setAvatar(canvas.toDataURL('image/jpeg', 0.7))
+      }
+      img.src = ev.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const isPhoto = avatar.startsWith('data:')
 
   return (
     <div className="profile-setup">
@@ -819,11 +897,12 @@ function ProfileSetup({ onSave }: { onSave: (p: Profile) => void }) {
         <input
           className="profile-input"
           value={name}
-          onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && save()}
+          onChange={e => { setName(e.target.value); setNameError('') }}
           placeholder="Enter your name..."
           autoFocus
         />
+        {nameError && <p style={{ color: '#e03', fontSize: '0.85rem', margin: '0.3rem 0 0' }}>{nameError}</p>}
       </div>
 
       <div className="profile-field">
@@ -835,13 +914,50 @@ function ProfileSetup({ onSave }: { onSave: (p: Profile) => void }) {
 
       <div className="profile-field">
         <label>Pick an Avatar</label>
-        <div className="avatar-grid">
-          {AVATARS.map(av => (
-            <button key={av} className={`avatar-btn ${avatar === av ? 'selected' : ''}`} onClick={() => setAvatar(av)}>
-              {av}
+
+        {/* Camera modal */}
+        {photoMode && (
+          <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+            <video ref={videoRef} autoPlay playsInline style={{ width: '200px', height: '200px', objectFit: 'cover', borderRadius: '50%', border: '3px solid #4a7fff' }} />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.6rem' }}>
+              <button className="gen-btn" onClick={takePhoto} style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>📸 Take Photo</button>
+              <button onClick={stopCamera} style={{ background: 'none', border: '1px solid #4a6fa5', color: '#4a6fa5', borderRadius: '8px', padding: '0.4rem 0.8rem', cursor: 'pointer', fontSize: '0.9rem' }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Current photo preview */}
+        {isPhoto && !photoMode && (
+          <div style={{ textAlign: 'center', marginBottom: '0.8rem' }}>
+            <img src={avatar} alt="profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #4a7fff' }} />
+            <div style={{ fontSize: '0.8rem', color: '#4a6fa5', marginTop: '0.3rem' }}>Photo selected ✓</div>
+          </div>
+        )}
+
+        {/* Photo buttons */}
+        {!photoMode && (
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem', flexWrap: 'wrap' }}>
+            <button onClick={openCamera} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.45rem 0.9rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
+              📷 Take Photo
             </button>
-          ))}
-        </div>
+            <label style={{ background: '#1a2a6e', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.45rem 0.9rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
+              🖼 Upload Photo
+              <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+            </label>
+          </div>
+        )}
+
+        {/* Emoji avatars */}
+        {!photoMode && (
+          <div className="avatar-grid">
+            {AVATARS.map(av => (
+              <button key={av} className={`avatar-btn ${avatar === av ? 'selected' : ''}`} onClick={() => setAvatar(av)}>
+                {av}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <button className="gen-btn" onClick={save} disabled={!name.trim()} style={{ marginTop: '0.5rem' }}>
@@ -854,7 +970,10 @@ function ProfileSetup({ onSave }: { onSave: (p: Profile) => void }) {
 function ProfileCard({ profile, points, onEdit }: { profile: Profile; points: number; onEdit: () => void }) {
   return (
     <div className="profile-card">
-      <div className="profile-avatar">{profile.avatar}</div>
+      {profile.avatar.startsWith('data:')
+        ? <img src={profile.avatar} alt="avatar" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #4a7fff' }} />
+        : <div className="profile-avatar">{profile.avatar}</div>
+      }
       <div className="profile-info">
         <div className="profile-name">{profile.name}</div>
         <div className="profile-meta">Grade {profile.grade} · ⭐ {points} pts</div>
@@ -1080,7 +1199,12 @@ function makeGameProblem(): { q: string; a: number } {
 }
 
 function shuffle<T>(arr: T[]): T[] {
-  return [...arr].sort(() => Math.random() - 0.5)
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 
 // ── Game 2: Speed Round ─────────────────────────────────────
@@ -1351,14 +1475,260 @@ function GameArcade({ onClose }: { onClose: () => void }) {
 }
 
 // ── Main App ───────────────────────────────────────────────
+// ── Auth screen ──────────────────────────────────────────────────────────────
+type AuthUser = { email: string; streak: number }
+
+const SAMPLE_PROBLEMS = [
+  { q: '34 + 47 = ?', a: '81', hint: 'Add ones: 4+7=11, carry the 1' },
+  { q: '7 × 8 = ?', a: '56', hint: 'Try counting by 7s: 7,14,21...' },
+  { q: '? + 15 = 40', a: '25', hint: 'Subtract: 40 − 15 = ?' },
+  { q: '144 ÷ 12 = ?', a: '12', hint: '12 × 12 = 144' },
+  { q: '3² + 4² = ?', a: '25', hint: '9 + 16 = ?' },
+  { q: '50% of 80 = ?', a: '40', hint: 'Half of 80' },
+  { q: '15 − 28 = ?', a: '-13', hint: 'Goes below zero!' },
+  { q: 'x + 9 = 17, x = ?', a: '8', hint: '17 − 9 = ?' },
+]
+
+function TryItBox() {
+  const [idx] = useState(() => Math.floor(Math.random() * SAMPLE_PROBLEMS.length))
+  const prob = SAMPLE_PROBLEMS[idx]
+  const [val, setVal] = useState('')
+  const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle')
+  const [showHint, setShowHint] = useState(false)
+
+  function check() {
+    if (val.trim() === prob.a) setStatus('correct')
+    else setStatus('wrong')
+  }
+
+  return (
+    <div style={{ marginTop: '1.5rem', background: '#f0f5ff', borderRadius: '14px', padding: '1.1rem 1.2rem', border: '1.5px solid #c8d8f0' }}>
+      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4a7fff', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+        ✨ Try a problem — no account needed
+      </div>
+      <div style={{ fontWeight: 700, color: '#1a2a6e', fontSize: '1.05rem', marginBottom: '0.7rem' }}>{prob.q}</div>
+
+      {status === 'correct' ? (
+        <div style={{ color: '#0a0', fontWeight: 700, fontSize: '1rem' }}>✅ Correct! Sign up to track your progress →</div>
+      ) : (
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <input
+            value={val} onChange={e => { setVal(e.target.value); setStatus('idle') }}
+            onKeyDown={e => e.key === 'Enter' && check()}
+            placeholder="Your answer"
+            style={{ flex: 1, padding: '0.55rem 0.8rem', borderRadius: '8px', border: `1.5px solid ${status === 'wrong' ? '#e03' : '#c8d8f0'}`, fontSize: '0.95rem', outline: 'none', color: '#1a2a6e' }}
+          />
+          <button onClick={check} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.55rem 1rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
+            ✓
+          </button>
+        </div>
+      )}
+
+      {status === 'wrong' && (
+        <p style={{ color: '#c00', fontSize: '0.82rem', margin: '0.4rem 0 0' }}>Not quite — try again!</p>
+      )}
+
+      {status !== 'correct' && (
+        <button onClick={() => setShowHint(h => !h)} style={{ background: 'none', border: 'none', color: '#4a7fff', fontSize: '0.8rem', cursor: 'pointer', padding: '0.3rem 0 0', display: 'block' }}>
+          {showHint ? '▲ Hide hint' : '💡 Show hint'}
+        </button>
+      )}
+      {showHint && status !== 'correct' && (
+        <p style={{ color: '#4a6fa5', fontSize: '0.82rem', margin: '0.3rem 0 0', fontStyle: 'italic' }}>{prob.hint}</p>
+      )}
+    </div>
+  )
+}
+
+function AuthScreen({ onAuth }: { onAuth: (user: AuthUser, token: string) => void }) {
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json() as any
+      if (!res.ok) { setError(data.error ?? 'Something went wrong'); return }
+      localStorage.setItem('aplus-token', data.token)
+      onAuth({ email: data.email, streak: data.streak }, data.token)
+    } catch {
+      setError('Could not connect to server')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'rgba(255,255,255,0.97)', borderRadius: '20px', padding: '2.5rem 2rem', width: '100%', maxWidth: '400px', boxShadow: '0 8px 40px rgba(74,127,255,0.15)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.8rem' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.3rem' }}>📐</div>
+          <h1 style={{ color: '#1a2a6e', margin: 0, fontSize: '1.6rem' }}>A+ Mathematics</h1>
+          <p style={{ color: '#4a6fa5', margin: '0.4rem 0 0', fontSize: '0.9rem' }}>
+            {mode === 'login' ? 'Welcome back! Log in to continue.' : 'Create your free account.'}
+          </p>
+        </div>
+
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+          <input
+            type="email" placeholder="Email address" required value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{ padding: '0.75rem 1rem', borderRadius: '10px', border: '1.5px solid #c8d8f0', fontSize: '1rem', outline: 'none', color: '#1a2a6e' }}
+          />
+          <input
+            type="password" placeholder="Password (6+ characters)" required value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{ padding: '0.75rem 1rem', borderRadius: '10px', border: '1.5px solid #c8d8f0', fontSize: '1rem', outline: 'none', color: '#1a2a6e' }}
+          />
+          {error && <p style={{ color: '#e03', margin: 0, fontSize: '0.88rem', textAlign: 'center' }}>{error}</p>}
+          <button
+            type="submit" disabled={loading}
+            style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.8rem', fontSize: '1rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? '...' : mode === 'login' ? 'Log In' : 'Create Account'}
+          </button>
+        </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: '1.1rem 0 0' }}>
+          <div style={{ flex: 1, height: '1px', background: '#d0dff0' }} />
+          <span style={{ color: '#8aa0c0', fontSize: '0.8rem' }}>or</span>
+          <div style={{ flex: 1, height: '1px', background: '#d0dff0' }} />
+        </div>
+
+        <a href="/api/auth/google" style={{ textDecoration: 'none', display: 'block', marginTop: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.7rem', border: '1.5px solid #d0dff0', borderRadius: '10px', padding: '0.7rem', cursor: 'pointer', background: '#fff', transition: 'box-shadow 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)')}
+            onMouseLeave={e => (e.currentTarget.style.boxShadow = '')}>
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span style={{ color: '#1a2a6e', fontWeight: 600, fontSize: '0.95rem' }}>Continue with Google</span>
+          </div>
+        </a>
+
+        <p style={{ textAlign: 'center', margin: '1rem 0 0', fontSize: '0.9rem', color: '#4a6fa5' }}>
+          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
+            style={{ background: 'none', border: 'none', color: '#4a7fff', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem', padding: 0 }}>
+            {mode === 'login' ? 'Sign Up' : 'Log In'}
+          </button>
+        </p>
+
+        <TryItBox />
+      </div>
+    </div>
+  )
+}
+
+const ADMIN_EMAIL = 'kiannookala@gmail.com'
+
+function AdminPanel({ onClose }: { onClose: () => void }) {
+  const [users, setUsers] = useState<{ email: string; created_at: number; current_streak: number; last_active: string }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const token = localStorage.getItem('aplus-token')
+    fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json() as Promise<any>)
+      .then(d => { if (Array.isArray(d)) setUsers(d); else setError('Could not load users.') })
+      .catch(() => setError('Network error.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: '#fff', borderRadius: '16px', padding: '2rem', maxWidth: '780px', width: '100%', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 40px rgba(0,0,0,0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+          <h2 style={{ margin: 0, color: '#1a3a6b', fontSize: '1.4rem' }}>🛡️ Admin — All Users ({users.length})</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#888' }}>✕</button>
+        </div>
+        {loading && <p style={{ color: '#888' }}>Loading…</p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {!loading && !error && (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ background: '#e8f0fe', textAlign: 'left' }}>
+                <th style={{ padding: '0.6rem 0.8rem', borderRadius: '8px 0 0 8px' }}>Email</th>
+                <th style={{ padding: '0.6rem 0.8rem' }}>Signed Up</th>
+                <th style={{ padding: '0.6rem 0.8rem' }}>Streak</th>
+                <th style={{ padding: '0.6rem 0.8rem', borderRadius: '0 8px 8px 0' }}>Last Active</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u, i) => (
+                <tr key={u.email} style={{ background: i % 2 === 0 ? '#f8faff' : '#fff', borderBottom: '1px solid #e0e8f0' }}>
+                  <td style={{ padding: '0.55rem 0.8rem', fontWeight: 600, color: '#2d5be3' }}>{u.email}</td>
+                  <td style={{ padding: '0.55rem 0.8rem', color: '#555' }}>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                  <td style={{ padding: '0.55rem 0.8rem' }}>🔥 {u.current_streak ?? 0} days</td>
+                  <td style={{ padding: '0.55rem 0.8rem', color: '#555' }}>{u.last_active ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
+  const [showAdmin, setShowAdmin] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [showAuthPanel, setShowAuthPanel] = useState(false)
+
+  useEffect(() => {
+    // Handle Google OAuth redirect (?token=xxx)
+    const params = new URLSearchParams(window.location.search)
+    const urlToken = params.get('token')
+    if (urlToken) {
+      localStorage.setItem('aplus-token', urlToken)
+      window.history.replaceState({}, '', '/')
+    }
+
+    const token = urlToken || localStorage.getItem('aplus-token')
+    if (!token) { setAuthLoading(false); return }
+    fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json() as Promise<any>)
+      .then(d => { if (d.email) setAuthUser({ email: d.email, streak: d.streak }) })
+      .catch(() => {})
+      .finally(() => setAuthLoading(false))
+  }, [])
+
+  function handleAuth(user: AuthUser, _token: string) { setAuthUser(user) }
+
+  function handleLogout() {
+    const token = localStorage.getItem('aplus-token')
+    if (token) fetch('/api/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {})
+    localStorage.removeItem('aplus-token')
+    setAuthUser(null)
+  }
+
   const [profile, setProfile] = useState<Profile | null>(() => {
     try { return JSON.parse(localStorage.getItem('aplus-profile') || 'null') } catch { return null }
   })
   const [editingProfile, setEditingProfile] = useState(false)
   const [grade, setGrade] = useState<number | null>(null)
   const [points, setPoints] = useState(() => {
-    try { return parseInt(localStorage.getItem('aplus-points') || '0') } catch { return 0 }
+    try {
+      const today = new Date().toISOString().slice(0, 10)
+      const saved = localStorage.getItem('aplus-points-date')
+      if (saved !== today) {
+        localStorage.setItem('aplus-points', '0')
+        localStorage.setItem('aplus-points-date', today)
+        return 0
+      }
+      return parseInt(localStorage.getItem('aplus-points') || '0')
+    } catch { return 0 }
   })
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
@@ -1376,28 +1746,66 @@ export default function App() {
       const next = p + 10
       if (next >= 100 && p < 100) setPopAnim(true)
       localStorage.setItem('aplus-points', String(next))
+      localStorage.setItem('aplus-points-date', new Date().toISOString().slice(0, 10))
       return next
     })
   }
 
+  const shuffledCurriculum = useMemo(() => {
+    const result: typeof curriculum = {}
+    for (const gradeKey in curriculum) {
+      const g = Number(gradeKey)
+      result[g] = {
+        ...curriculum[g],
+        lessons: curriculum[g].lessons.map((lesson, i) => ({
+          ...lesson,
+          problems: generateLesson(g, i, 8),
+        })),
+      }
+    }
+    return result
+  }, [])
+
   const floaters = useMemo(() => {
-    const rand = seededRandom(42)
+    const rand = seededRandom(Math.floor(Math.random() * 0xffffffff))
+    const shuffled = [...expressions].sort(() => rand() - 0.5)
     return Array.from({ length: 200 }, (_, i) => ({
-      text: expressions[i % expressions.length],
+      text: shuffled[i % shuffled.length],
       top: rand() * 100, left: rand() * 100,
-      opacity: 0.02 + rand() * 0.05,
+      opacity: 0.35 + rand() * 0.3,
       size: 0.65 + rand() * 0.7,
       rotate: -25 + rand() * 50,
     }))
   }, [])
 
-  const content = grade ? curriculum[grade] : null
+  const content = grade ? shuffledCurriculum[grade] : null
   const pct = Math.min(100, points)
   const unlocked = points >= 100
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4a7fff', fontSize: '1.2rem' }}>
+        Loading...
+      </div>
+    )
+  }
+
+  const isGuest = !authUser
 
   return (
     <div className="page">
       {showGame && <GameArcade onClose={() => setShowGame(false)} />}
+
+      {/* Auth slide-in panel */}
+      {showAuthPanel && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,20,50,0.6)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowAuthPanel(false) }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+            <button onClick={() => setShowAuthPanel(false)} style={{ position: 'absolute', top: '-0.5rem', right: '-0.5rem', background: '#fff', border: 'none', borderRadius: '50%', width: '2rem', height: '2rem', fontSize: '1rem', cursor: 'pointer', zIndex: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>✕</button>
+            <AuthScreen onAuth={(user, token) => { handleAuth(user, token); setShowAuthPanel(false) }} />
+          </div>
+        </div>
+      )}
 
       <div className="bg">
         {floaters.map((f, i) => (
@@ -1409,18 +1817,60 @@ export default function App() {
 
       <div className="corner-credit">Made by Kian Nookala</div>
 
+      {/* Top bar */}
+      <div style={{ position: 'fixed', top: '0.7rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.7rem', zIndex: 200 }}>
+        {isGuest ? (
+          <>
+            <div style={{ background: 'rgba(255,255,255,0.92)', border: '1.5px solid #ffb300', borderRadius: '20px', padding: '0.35rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, color: '#7a5000' }}>
+              👀 Guest mode — limited access
+            </div>
+            <button onClick={() => setShowAuthPanel(true)} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}>
+              Sign Up / Log In
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{ background: 'rgba(255,255,255,0.9)', border: '1.5px solid #ffd700', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.85rem', fontWeight: 700, color: '#b07800', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              🔥 {authUser.streak}-day streak
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', color: '#4a6fa5' }}>
+              {authUser.email}
+            </div>
+            {authUser.email === ADMIN_EMAIL && (
+              <button onClick={() => setShowAdmin(true)} style={{ background: '#1a3a6b', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>
+                🛡️ Admin
+              </button>
+            )}
+            <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.9)', border: '1.5px solid #c8d8f0', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', color: '#4a6fa5', cursor: 'pointer', fontWeight: 600 }}>
+              Log Out
+            </button>
+          </>
+        )}
+      </div>
+
+      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+
       <div className="main">
         <div className="hero-card">
-          <h1>A+ Mathematics</h1>
-          <p>A website that helps you get ahead in Math!!!</p>
+          <h1 style={{ borderBottom: '2px solid rgba(255,255,255,0.3)', paddingBottom: '0.6rem', marginBottom: '0.8rem' }}>A+ Mathematics</h1>
+          <p style={{ fontSize: '0.95rem', color: '#ffffff', lineHeight: 1.7, margin: 0 }}>
+            Every kid has the potential to be great at math — they just need the right practice. A+ Mathematics turns daily math into something kids actually look forward to, with instant feedback, streaks, and games that make progress feel amazing. Start today and watch your child go from confused to confident, one problem at a time.
+          </p>
         </div>
 
+
         {/* Profile */}
-        {!profile || editingProfile ? (
-          <ProfileSetup onSave={saveProfile} />
-        ) : (
-          <ProfileCard profile={profile} points={points} onEdit={() => setEditingProfile(true)} />
+        {!isGuest && (!profile || editingProfile) && <ProfileSetup onSave={saveProfile} />}
+        {!isGuest && profile && !editingProfile && <ProfileCard profile={profile} points={points} onEdit={() => setEditingProfile(true)} />}
+
+        {/* Gate everything behind profile completion (logged-in users only) */}
+        {!isGuest && (!profile || editingProfile) && (
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#4a6fa5', fontSize: '0.95rem' }}>
+            👆 Complete your profile above to start learning!
+          </div>
         )}
+
+        {(isGuest || (profile && !editingProfile)) && (<>
 
         {/* How it works */}
         <div className="directions">
@@ -1475,9 +1925,11 @@ export default function App() {
           <button className={`tab-btn ${tab === 'lessons' ? 'active' : ''}`} onClick={() => setTab('lessons')}>
             📚 Lessons
           </button>
-          <button className={`tab-btn ${tab === 'study' ? 'active' : ''}`} onClick={() => setTab('study')}>
-            🤖 AI Study Mode
-          </button>
+          {!isGuest && (
+            <button className={`tab-btn ${tab === 'study' ? 'active' : ''}`} onClick={() => setTab('study')}>
+              🤖 AI Study Mode
+            </button>
+          )}
         </div>
 
         {tab === 'lessons' && (
@@ -1498,7 +1950,7 @@ export default function App() {
                 <h2 className="lessons-title">{content.label}</h2>
                 <p className="lessons-sub">Type your answer in each box and press <kbd>Enter</kbd> or <kbd>✓</kbd> to check it. Press <kbd>Skip</kbd> to reveal the answer without earning points.</p>
                 <div className="lessons-grid">
-                  {content.lessons.map((lesson, i) => (
+                  {(isGuest ? content.lessons.slice(0, 1) : content.lessons).map((lesson, i) => (
                     <div className="lesson-card" key={i}>
                       <div className="lesson-topic">{lesson.topic}</div>
                       <div className="lesson-desc">{lesson.description}</div>
@@ -1509,13 +1961,57 @@ export default function App() {
                       </div>
                     </div>
                   ))}
+                  {isGuest && (
+                    <div className="lesson-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', minHeight: '180px', background: 'rgba(74,127,255,0.05)', border: '2px dashed #c8d8f0' }}>
+                      <div style={{ fontSize: '1.8rem' }}>🔒</div>
+                      <div style={{ fontWeight: 700, color: '#1a2a6e', fontSize: '1rem' }}>2 more lessons locked</div>
+                      <div style={{ color: '#4a6fa5', fontSize: '0.85rem', textAlign: 'center' }}>Sign up free to unlock all 3 lessons per grade</div>
+                      <button onClick={() => setShowAuthPanel(true)} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.5rem 1.2rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+                        Sign Up Free →
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </>
         )}
 
-        {tab === 'study' && <StudyMode onCorrect={addPoint} />}
+        {tab === 'study' && (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
+            <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>AI Study Mode</h2>
+            <p style={{ color: '#4a6fa5', fontSize: '1.1rem' }}>Coming Soon!</p>
+          </div>
+        )}
+        </>)}
+
+        {/* Ad card — bottom of page */}
+        <a href="https://motionedu.org" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginTop: '3rem' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1a2a6e, #2a4fff)',
+            border: '1px solid #4a7fff',
+            borderRadius: '16px',
+            padding: '1.2rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            cursor: 'pointer',
+            transition: 'transform 0.15s, box-shadow 0.15s',
+            boxShadow: '0 4px 15px rgba(74,127,255,0.3)',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 25px rgba(74,127,255,0.5)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 15px rgba(74,127,255,0.3)' }}
+          >
+            <div style={{ fontSize: '2rem' }}>🎬</div>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '0.7rem', color: '#64ffb4', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Sponsored</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', marginBottom: '0.2rem' }}>MotionEdu</div>
+              <div style={{ fontSize: '0.85rem', color: '#a0b4ff' }}>A great website to generate videos and content for your learning needs!</div>
+            </div>
+            <div style={{ marginLeft: 'auto', color: '#64ffb4', fontSize: '1.2rem' }}>→</div>
+          </div>
+        </a>
       </div>
     </div>
   )
