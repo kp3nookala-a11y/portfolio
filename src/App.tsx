@@ -1699,7 +1699,7 @@ export default function App() {
     if (!token) { setAuthLoading(false); return }
     fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json() as Promise<any>)
-      .then(d => { if (d.email) setAuthUser({ email: d.email, streak: d.streak }) })
+      .then(d => { if (d.email) { console.log('APLUS email:', d.email, '| match:', d.email === ADMIN_EMAIL); setAuthUser({ email: d.email, streak: d.streak }) } })
       .catch(() => {})
       .finally(() => setAuthLoading(false))
   }, [])
