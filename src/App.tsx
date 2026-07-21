@@ -1683,6 +1683,10 @@ function AdminPanel({ onClose }: { onClose: () => void }) {
 export default function App() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [showAdmin, setShowAdmin] = useState(false)
+
+  useEffect(() => {
+    if (authUser?.email === ADMIN_EMAIL) setShowAdmin(true)
+  }, [authUser])
   const [authLoading, setAuthLoading] = useState(true)
   const [showAuthPanel, setShowAuthPanel] = useState(false)
 
@@ -1836,11 +1840,6 @@ export default function App() {
             <div style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', color: '#4a6fa5' }}>
               {authUser.email}
             </div>
-            {authUser.email === ADMIN_EMAIL && (
-              <button onClick={() => setShowAdmin(true)} style={{ background: '#1a3a6b', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}>
-                🛡️ Admin
-              </button>
-            )}
             <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.9)', border: '1.5px solid #c8d8f0', borderRadius: '20px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', color: '#4a6fa5', cursor: 'pointer', fontWeight: 600 }}>
               Log Out
             </button>
