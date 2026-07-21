@@ -1687,6 +1687,13 @@ export default function App() {
   const [showAuthPanel, setShowAuthPanel] = useState(false)
 
   useEffect(() => {
+    if (!authLoading && !authUser) {
+      const t = setTimeout(() => setShowAuthPanel(true), 10 * 60 * 1000)
+      return () => clearTimeout(t)
+    }
+  }, [authLoading, authUser])
+
+  useEffect(() => {
     // Handle Google OAuth redirect (?token=xxx)
     const params = new URLSearchParams(window.location.search)
     const urlToken = params.get('token')
