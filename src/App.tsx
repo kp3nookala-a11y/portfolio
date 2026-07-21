@@ -1859,7 +1859,7 @@ export default function App() {
 
       <div className="main">
         <div className="hero-card">
-          <h1 style={{ borderBottom: '2px solid rgba(255,255,255,0.3)', paddingBottom: '0.6rem', marginBottom: '0.8rem' }}>A+ Mathematics ✓</h1>
+          <h1 style={{ borderBottom: '2px solid rgba(255,255,255,0.3)', paddingBottom: '0.6rem', marginBottom: '0.8rem' }}>A+ Mathematics</h1>
           <p style={{ fontSize: '0.95rem', color: '#ffffff', lineHeight: 1.7, margin: 0 }}>
             Every kid has the potential to be great at math — they just need the right practice. A+ Mathematics turns daily math into something kids actually look forward to, with instant feedback, streaks, and games that make progress feel amazing. Start today and watch your child go from confused to confident, one problem at a time.
           </p>
