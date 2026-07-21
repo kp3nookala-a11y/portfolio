@@ -1843,7 +1843,7 @@ export default function App() {
         )}
       </div>
 
-      {authUser?.email === ADMIN_EMAIL && (
+      {authUser?.email?.toLowerCase() === ADMIN_EMAIL && (
         <>
           {!adminClosed && <AdminPanel onClose={() => setAdminClosed(true)} />}
           {adminClosed && (

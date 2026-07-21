@@ -7,7 +7,7 @@ export const onRequestOptions: PagesFunction = async () => corsOptions()
 
 export const onRequestGet: PagesFunction<Env> = async (ctx) => {
   const user = await getSessionUser(ctx.env.DB, ctx.request)
-  if (!user || user.email !== ADMIN_EMAIL) return json({ error: 'Unauthorized' }, 403)
+  if (!user || user.email?.toLowerCase() !== ADMIN_EMAIL) return json({ error: 'Unauthorized' }, 403)
 
   const { results } = await ctx.env.DB.prepare(`
     SELECT u.email, u.created_at, s.current_streak, s.last_active
