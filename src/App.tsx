@@ -3246,35 +3246,37 @@ export default function App() {
 
         {(isGuest || (profile && !editingProfile)) && (<>
 
-        {/* How it works */}
-        <div className="directions">
-          <div className="dir-title">👋 How It Works</div>
-          <div className="dir-steps">
-            <div className="dir-step">
-              <span className="dir-num">1</span>
-              <div>
-                <strong>Pick your grade</strong> in the Lessons tab — we'll teach you the <em>next</em> grade's math so you get ahead.
-              </div>
-            </div>
-            <div className="dir-step">
-              <span className="dir-num">2</span>
-              <div>
-                <strong>Answer problems</strong> by typing your answer and pressing ✓ or Enter. Any equivalent form is accepted (e.g. 2/4 = 1/2 = 0.5).
-              </div>
-            </div>
-            <div className="dir-step">
-              <span className="dir-num">3</span>
-              <div>
-                <strong>Earn ⭐ points</strong> for every correct answer. Reach <strong>100 pts</strong> to unlock the 🎮 Math Blaster game!
-              </div>
-            </div>
-            <div className="dir-step">
-              <span className="dir-num">4</span>
-              <div>
-                <strong>Try AI Study Mode</strong> for unlimited AI-generated problems with hints, explanations, and difficulty levels.
-              </div>
-            </div>
-          </div>
+        {/* Subject cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          {[
+            { id: 'math',      emoji: '➕', label: 'Math',      desc: 'Grades 1–12',              color: '#ff6b6b', text: '#fff' },
+            { id: 'reading',   emoji: '📖', label: 'Reading',   desc: 'Comprehension & vocab',     color: '#48dbfb', text: '#003d4d' },
+            { id: 'writing',   emoji: '✏️', label: 'Writing',   desc: 'Grammar & essays',          color: '#feca57', text: '#4a3200' },
+            { id: 'geography', emoji: '🌍', label: 'Geography', desc: 'Maps & capitals',           color: '#a29bfe', text: '#1a0050' },
+          ].map(s => (
+            <button
+              key={s.id}
+              onClick={() => { setSubject(s.id as any); setTab('lessons') }}
+              style={{
+                background: s.color,
+                border: subject === s.id && tab === 'lessons' ? `3px solid ${s.text === '#fff' ? 'rgba(0,0,0,0.3)' : s.text}` : 'none',
+                borderRadius: '16px',
+                padding: '1.1rem 1rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'transform 0.15s, box-shadow 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = '' }}
+            >
+              <div style={{ position: 'absolute', bottom: '-16px', right: '-10px', fontSize: '4rem', opacity: 0.12 }}>{s.emoji}</div>
+              <div style={{ fontSize: '1.5rem', position: 'relative', zIndex: 1 }}>{s.emoji}</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: s.text, margin: '6px 0 2px', position: 'relative', zIndex: 1 }}>{s.label}</div>
+              <div style={{ fontSize: '0.7rem', color: s.text, opacity: 0.75, position: 'relative', zIndex: 1 }}>{s.desc}</div>
+            </button>
+          ))}
         </div>
 
         {/* Points bar */}
