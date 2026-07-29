@@ -3082,8 +3082,8 @@ export default function App() {
   })
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
-  const [tab, setTab] = useState<'lessons' | 'study'>('lessons')
   const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'geography'>('math')
+  const [navPage, setNavPage] = useState<'home' | 'lessons' | 'character' | 'house' | 'shop'>('home')
 
   function saveProfile(p: Profile) {
     setProfile(p)
@@ -3209,108 +3209,119 @@ export default function App() {
         </>
       )}
 
-      <div className="main">
-        <div className="hero-card">
-          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '4px', marginBottom: '0.3rem', position: 'relative', zIndex: 1 }}>WELCOME TO</div>
-          <h1>Ace Academy</h1>
-          <p>Every subject. Every grade. All free.</p>
-          {isGuest && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', maxWidth: '260px', margin: '1.2rem auto 0', position: 'relative', zIndex: 1 }}>
-              <button onClick={() => setShowAuthPanel(true)} style={{ width: '100%', background: '#feca57', color: '#1a1a2e', border: 'none', borderRadius: '30px', padding: '0.65rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>
-                Try it for free
+      {/* Bottom nav bar */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200, background: 'rgba(255,255,255,0.97)', borderTop: '1.5px solid #d8eaf8', display: 'flex', justifyContent: 'space-around', padding: '0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom))' }}>
+        {([
+          { id: 'home',      emoji: '🏠', label: 'Home' },
+          { id: 'lessons',   emoji: '📚', label: 'Lessons' },
+          { id: 'character', emoji: '🎨', label: 'Character' },
+          { id: 'house',     emoji: '🏡', label: 'My House' },
+          { id: 'shop',      emoji: '🛍️', label: 'Shop' },
+        ] as const).map(n => (
+          <button key={n.id} onClick={() => setNavPage(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '0 0.5rem', opacity: navPage === n.id ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+            <span style={{ fontSize: '1.4rem' }}>{n.emoji}</span>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: navPage === n.id ? '#4a7fff' : '#4a6fa5' }}>{n.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="main" style={{ paddingBottom: '5rem' }}>
+
+        {/* HOME PAGE */}
+        {navPage === 'home' && (<>
+          <div className="hero-card">
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '4px', marginBottom: '0.3rem', position: 'relative', zIndex: 1 }}>WELCOME TO</div>
+            <h1>Ace Academy</h1>
+            <p>Every subject. Every grade. All free.</p>
+            {isGuest && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', maxWidth: '260px', margin: '1.2rem auto 0', position: 'relative', zIndex: 1 }}>
+                <button onClick={() => setShowAuthPanel(true)} style={{ width: '100%', background: '#feca57', color: '#1a1a2e', border: 'none', borderRadius: '30px', padding: '0.65rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>
+                  Try it for free
+                </button>
+                <button onClick={() => setShowAuthPanel(true)} style={{ width: '100%', background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.6)', borderRadius: '30px', padding: '0.65rem', fontSize: '0.9rem', cursor: 'pointer' }}>
+                  Log in / Sign up
+                </button>
+                <a href="/api/auth/google" style={{ width: '100%', textDecoration: 'none' }}>
+                  <div style={{ background: '#fff', borderRadius: '30px', padding: '0.65rem', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#444' }}>
+                    <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.7 0 6.7 5.5 2.8 13.5l7.8 6C12.4 13.2 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.6 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-10 6.9-17z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.5-.8-3-.8-4.5s.3-3 .8-4.5l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.8 10.5l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.2 0-11.5-4.2-13.4-9.9l-7.8 6C6.7 42.5 14.7 48 24 48z"/></svg>
+                    Continue with Google
+                  </div>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Subject cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {[
+              { id: 'math',      emoji: '➕', label: 'Math',      desc: 'Grades 1–12',          color: '#ff6b6b', text: '#fff',     badge: 'Live now',    badgeBg: 'rgba(255,255,255,0.3)' },
+              { id: 'reading',   emoji: '📖', label: 'Reading',   desc: 'Comprehension & vocab', color: '#48dbfb', text: '#003d4d', badge: 'Live now',    badgeBg: 'rgba(0,0,0,0.12)' },
+              { id: 'writing',   emoji: '✏️', label: 'Writing',   desc: 'Grammar & essays',      color: '#feca57', text: '#4a3200', badge: 'Live now',    badgeBg: 'rgba(0,0,0,0.1)' },
+              { id: 'geography', emoji: '🌍', label: 'Geography', desc: 'Maps & capitals',       color: '#a29bfe', text: '#1a0050', badge: 'Live now',    badgeBg: 'rgba(255,255,255,0.25)' },
+            ].map(s => (
+              <button
+                key={s.id}
+                onClick={() => { setSubject(s.id as any); setNavPage('lessons') }}
+                style={{ background: s.color, border: 'none', borderRadius: '16px', padding: '1.1rem 1rem', cursor: 'pointer', textAlign: 'left', position: 'relative', overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.18)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = '' }}
+              >
+                <div style={{ position: 'absolute', bottom: '-16px', right: '-10px', fontSize: '4rem', opacity: 0.12 }}>{s.emoji}</div>
+                <div style={{ fontSize: '1.5rem', position: 'relative', zIndex: 1 }}>{s.emoji}</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: s.text, margin: '6px 0 2px', position: 'relative', zIndex: 1 }}>{s.label}</div>
+                <div style={{ fontSize: '0.7rem', color: s.text, opacity: 0.75, marginBottom: '8px', position: 'relative', zIndex: 1 }}>{s.desc}</div>
+                <div style={{ display: 'inline-block', background: s.badgeBg, borderRadius: '20px', padding: '2px 10px', fontSize: '0.68rem', fontWeight: 700, color: s.text, position: 'relative', zIndex: 1 }}>{s.badge}</div>
               </button>
-              <button onClick={() => setShowAuthPanel(true)} style={{ width: '100%', background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.6)', borderRadius: '30px', padding: '0.65rem', fontSize: '0.9rem', cursor: 'pointer' }}>
-                Log in / Sign up
+            ))}
+          </div>
+
+          {/* Points bar */}
+          <div className="points-bar">
+            <div className="points-info">
+              <span className="points-label">⭐ {points} pts</span>
+              <span className="points-sub">{unlocked ? '🎮 Game Unlocked!' : `${100 - pct} pts to unlock the game`}</span>
+            </div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${pct}%` }} />
+              {unlocked && <div className="progress-glow" />}
+            </div>
+            {unlocked && (
+              <button className={`play-btn ${popAnim ? 'pop' : ''}`} onClick={() => setShowGame(true)} onAnimationEnd={() => setPopAnim(false)}>
+                🎮 Play Math Blaster!
               </button>
-              <a href="/api/auth/google" style={{ width: '100%', textDecoration: 'none' }}>
-                <div style={{ background: '#fff', borderRadius: '30px', padding: '0.65rem', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#444' }}>
-                  <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.7 0 6.7 5.5 2.8 13.5l7.8 6C12.4 13.2 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.6 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-10 6.9-17z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.5-.8-3-.8-4.5s.3-3 .8-4.5l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.8 10.5l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.2 0-11.5-4.2-13.4-9.9l-7.8 6C6.7 42.5 14.7 48 24 48z"/></svg>
-                  Continue with Google
-                </div>
-              </a>
+            )}
+          </div>
+
+          {/* Ad card */}
+          <a href="https://motionedu.org" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginTop: '1rem' }}>
+            <div style={{ background: 'linear-gradient(135deg, #1a2a6e, #2a4fff)', border: '1px solid #4a7fff', borderRadius: '16px', padding: '1.2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: '0 4px 15px rgba(74,127,255,0.3)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 25px rgba(74,127,255,0.5)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 15px rgba(74,127,255,0.3)' }}
+            >
+              <div style={{ fontSize: '2rem' }}>🎬</div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '0.7rem', color: '#64ffb4', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Sponsored</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', marginBottom: '0.2rem' }}>MotionEdu</div>
+                <div style={{ fontSize: '0.85rem', color: '#a0b4ff' }}>Generate videos and content for your learning needs!</div>
+              </div>
+              <div style={{ marginLeft: 'auto', color: '#64ffb4', fontSize: '1.2rem' }}>→</div>
+            </div>
+          </a>
+        </>)}
+
+        {/* LESSONS PAGE */}
+        {navPage === 'lessons' && (<>
+          {/* Profile */}
+          {!isGuest && (!profile || editingProfile) && <ProfileSetup onSave={saveProfile} initial={editingProfile ? profile : null} />}
+          {!isGuest && profile && !editingProfile && <ProfileCard profile={profile} points={points} onEdit={() => setEditingProfile(true)} />}
+          {!isGuest && (!profile || editingProfile) && (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#4a6fa5', fontSize: '0.95rem' }}>
+              👆 Complete your profile above to start learning!
             </div>
           )}
-        </div>
 
-
-        {/* Profile */}
-        {!isGuest && (!profile || editingProfile) && <ProfileSetup onSave={saveProfile} initial={editingProfile ? profile : null} />}
-        {!isGuest && profile && !editingProfile && <ProfileCard profile={profile} points={points} onEdit={() => setEditingProfile(true)} />}
-
-        {/* Gate everything behind profile completion (logged-in users only) */}
-        {!isGuest && (!profile || editingProfile) && (
-          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#4a6fa5', fontSize: '0.95rem' }}>
-            👆 Complete your profile above to start learning!
-          </div>
-        )}
-
-        {(isGuest || (profile && !editingProfile)) && (<>
-
-        {/* Subject cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          {[
-            { id: 'math',      emoji: '➕', label: 'Math',      desc: 'Grades 1–12',              color: '#ff6b6b', text: '#fff' },
-            { id: 'reading',   emoji: '📖', label: 'Reading',   desc: 'Comprehension & vocab',     color: '#48dbfb', text: '#003d4d' },
-            { id: 'writing',   emoji: '✏️', label: 'Writing',   desc: 'Grammar & essays',          color: '#feca57', text: '#4a3200' },
-            { id: 'geography', emoji: '🌍', label: 'Geography', desc: 'Maps & capitals',           color: '#a29bfe', text: '#1a0050' },
-          ].map(s => (
-            <button
-              key={s.id}
-              onClick={() => { setSubject(s.id as any); setTab('lessons') }}
-              style={{
-                background: s.color,
-                border: subject === s.id && tab === 'lessons' ? `3px solid ${s.text === '#fff' ? 'rgba(0,0,0,0.3)' : s.text}` : 'none',
-                borderRadius: '16px',
-                padding: '1.1rem 1rem',
-                cursor: 'pointer',
-                textAlign: 'left',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'transform 0.15s, box-shadow 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = '' }}
-            >
-              <div style={{ position: 'absolute', bottom: '-16px', right: '-10px', fontSize: '4rem', opacity: 0.12 }}>{s.emoji}</div>
-              <div style={{ fontSize: '1.5rem', position: 'relative', zIndex: 1 }}>{s.emoji}</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: s.text, margin: '6px 0 2px', position: 'relative', zIndex: 1 }}>{s.label}</div>
-              <div style={{ fontSize: '0.7rem', color: s.text, opacity: 0.75, position: 'relative', zIndex: 1 }}>{s.desc}</div>
-            </button>
-          ))}
-        </div>
-
-        {/* Points bar */}
-        <div className="points-bar">
-          <div className="points-info">
-            <span className="points-label">⭐ {points} pts</span>
-            <span className="points-sub">{unlocked ? '🎮 Game Unlocked!' : `${100 - pct} pts to unlock the game`}</span>
-          </div>
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${pct}%` }} />
-            {unlocked && <div className="progress-glow" />}
-          </div>
-          {unlocked && (
-            <button className={`play-btn ${popAnim ? 'pop' : ''}`} onClick={() => setShowGame(true)} onAnimationEnd={() => setPopAnim(false)}>
-              🎮 Play Math Blaster!
-            </button>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="tabs">
-          <button className={`tab-btn ${tab === 'lessons' ? 'active' : ''}`} onClick={() => setTab('lessons')}>
-            📚 Lessons
-          </button>
-          {!isGuest && (
-            <button className={`tab-btn ${tab === 'study' ? 'active' : ''}`} onClick={() => setTab('study')}>
-              🤖 AI Study Mode
-            </button>
-          )}
-        </div>
-
-        {tab === 'lessons' && (
-          <>
-            {/* Subject selector */}
+          {(isGuest || (profile && !editingProfile)) && (<>
+            {/* Subject selector pills */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '1rem' }}>
               {[
                 { id: 'math',      label: '➕ Math',      color: '#ff6b6b' },
@@ -3321,17 +3332,7 @@ export default function App() {
                 <button
                   key={s.id}
                   onClick={() => setSubject(s.id as any)}
-                  style={{
-                    background: subject === s.id ? s.color : 'rgba(255,255,255,0.7)',
-                    color: subject === s.id ? (s.id === 'writing' ? '#4a3200' : '#fff') : '#555',
-                    border: subject === s.id ? 'none' : '1.5px solid #d0dff0',
-                    borderRadius: '20px',
-                    padding: '0.4rem 1rem',
-                    fontSize: '0.85rem',
-                    fontWeight: subject === s.id ? 700 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
+                  style={{ background: subject === s.id ? s.color : 'rgba(255,255,255,0.7)', color: subject === s.id ? (s.id === 'writing' ? '#4a3200' : '#fff') : '#555', border: subject === s.id ? 'none' : '1.5px solid #d0dff0', borderRadius: '20px', padding: '0.4rem 1rem', fontSize: '0.85rem', fontWeight: subject === s.id ? 700 : 500, cursor: 'pointer', transition: 'all 0.15s' }}
                 >{s.label}</button>
               ))}
             </div>
@@ -3343,13 +3344,11 @@ export default function App() {
                 ))}
               </div>
             </div>
-            {!grade && (
-              <div className="pick-grade-hint">👆 Select your current grade above to load your lessons</div>
-            )}
+            {!grade && <div className="pick-grade-hint">👆 Select your current grade above to load your lessons</div>}
             {content && (
               <div className="lessons">
                 <h2 className="lessons-title">{content.label}</h2>
-                <p className="lessons-sub">Type your answer in each box and press <kbd>Enter</kbd> or <kbd>✓</kbd> to check it. Press <kbd>Skip</kbd> to reveal the answer without earning points.</p>
+                <p className="lessons-sub">Type your answer and press <kbd>Enter</kbd> or <kbd>✓</kbd> to check it. Press <kbd>Skip</kbd> to reveal without earning points.</p>
                 <div className="lessons-grid">
                   {(isGuest ? content.lessons.slice(0, 1) : content.lessons).map((lesson, i) => (
                     <div className={`lesson-card ${subject}-${i}`} key={i}>
@@ -3367,52 +3366,54 @@ export default function App() {
                       <div style={{ fontSize: '1.8rem' }}>🔒</div>
                       <div style={{ fontWeight: 700, color: '#1a2a6e', fontSize: '1rem' }}>2 more lessons locked</div>
                       <div style={{ color: '#4a6fa5', fontSize: '0.85rem', textAlign: 'center' }}>Sign up free to unlock all 3 lessons per grade</div>
-                      <button onClick={() => setShowAuthPanel(true)} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.5rem 1.2rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
-                        Sign Up Free →
-                      </button>
+                      <button onClick={() => setShowAuthPanel(true)} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.5rem 1.2rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>Sign Up Free →</button>
                     </div>
                   )}
                 </div>
               </div>
             )}
-          </>
-        )}
-
-        {tab === 'study' && (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
-            <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>AI Study Mode</h2>
-            <p style={{ color: '#4a6fa5', fontSize: '1.1rem' }}>Coming Soon!</p>
-          </div>
-        )}
+          </>)}
         </>)}
 
-        {/* Ad card — bottom of page */}
-        <a href="https://motionedu.org" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginTop: '3rem' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1a2a6e, #2a4fff)',
-            border: '1px solid #4a7fff',
-            borderRadius: '16px',
-            padding: '1.2rem 1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            cursor: 'pointer',
-            transition: 'transform 0.15s, box-shadow 0.15s',
-            boxShadow: '0 4px 15px rgba(74,127,255,0.3)',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 25px rgba(74,127,255,0.5)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 15px rgba(74,127,255,0.3)' }}
-          >
-            <div style={{ fontSize: '2rem' }}>🎬</div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.7rem', color: '#64ffb4', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Sponsored</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', marginBottom: '0.2rem' }}>MotionEdu</div>
-              <div style={{ fontSize: '0.85rem', color: '#a0b4ff' }}>A great website to generate videos and content for your learning needs!</div>
+        {/* CHARACTER PAGE */}
+        {navPage === 'character' && (<>
+          {!isGuest && (!profile || editingProfile) && <ProfileSetup onSave={saveProfile} initial={editingProfile ? profile : null} />}
+          {!isGuest && profile && !editingProfile && <ProfileCard profile={profile} points={points} onEdit={() => setEditingProfile(true)} />}
+          {isGuest && (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎨</div>
+              <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>Create Your Character</h2>
+              <p style={{ color: '#4a6fa5', marginBottom: '1.5rem' }}>Sign up to create and customize your own character!</p>
+              <button onClick={() => setShowAuthPanel(true)} style={{ background: '#feca57', color: '#1a1a2e', border: 'none', borderRadius: '30px', padding: '0.8rem 2rem', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Sign Up Free</button>
             </div>
-            <div style={{ marginLeft: 'auto', color: '#64ffb4', fontSize: '1.2rem' }}>→</div>
+          )}
+        </>)}
+
+        {/* MY HOUSE PAGE */}
+        {navPage === 'house' && (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏡</div>
+            <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>My House</h2>
+            <p style={{ color: '#4a6fa5' }}>Decorate your house with items from the Shop! Coming soon.</p>
           </div>
-        </a>
+        )}
+
+        {/* SHOP PAGE */}
+        {navPage === 'shop' && (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛍️</div>
+            <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>Shop</h2>
+            <p style={{ color: '#4a6fa5' }}>Spend your points on furniture and decorations! Coming soon.</p>
+            <div style={{ background: 'rgba(255,255,255,0.8)', borderRadius: '16px', padding: '1rem', marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>⭐</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 700, color: '#1a3a6b' }}>Your balance</div>
+                <div style={{ color: '#4a6fa5', fontSize: '0.9rem' }}>{points} points</div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )
