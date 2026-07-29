@@ -2915,8 +2915,8 @@ function AuthScreen({ onAuth }: { onAuth: (user: AuthUser, token: string) => voi
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div style={{ background: 'rgba(255,255,255,0.97)', borderRadius: '20px', padding: '2.5rem 2rem', width: '100%', maxWidth: '400px', boxShadow: '0 8px 40px rgba(74,127,255,0.15)' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.8rem' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.3rem' }}>📐</div>
-          <h1 style={{ color: '#1a2a6e', margin: 0, fontSize: '1.6rem' }}>A+ Mathematics</h1>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.3rem' }}>🎓</div>
+          <h1 style={{ color: '#1a3a6b', margin: 0, fontSize: '1.6rem' }}>Ace Academy</h1>
           <p style={{ color: '#4a6fa5', margin: '0.4rem 0 0', fontSize: '0.9rem' }}>
             {mode === 'login' ? 'Welcome back! Log in to continue.' : 'Create your free account.'}
           </p>
@@ -3211,10 +3211,25 @@ export default function App() {
 
       <div className="main">
         <div className="hero-card">
-          <h1 style={{ borderBottom: '2px solid rgba(255,255,255,0.3)', paddingBottom: '0.6rem', marginBottom: '0.8rem' }}>A+ Mathematics</h1>
-          <p style={{ fontSize: '0.95rem', color: '#ffffff', lineHeight: 1.7, margin: 0 }}>
-            Every kid has the potential to be great at math — they just need the right practice. A+ Mathematics turns daily math into something kids actually look forward to, with instant feedback, streaks, and games that make progress feel amazing. Start today and watch your child go from confused to confident, one problem at a time.
-          </p>
+          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '4px', marginBottom: '0.3rem', position: 'relative', zIndex: 1 }}>WELCOME TO</div>
+          <h1>Ace Academy</h1>
+          <p>Every subject. Every grade. All free.</p>
+          {isGuest && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', maxWidth: '260px', margin: '1.2rem auto 0', position: 'relative', zIndex: 1 }}>
+              <button onClick={() => setShowAuthPanel(true)} style={{ width: '100%', background: '#feca57', color: '#1a1a2e', border: 'none', borderRadius: '30px', padding: '0.65rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>
+                Try it for free
+              </button>
+              <button onClick={() => setShowAuthPanel(true)} style={{ width: '100%', background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.6)', borderRadius: '30px', padding: '0.65rem', fontSize: '0.9rem', cursor: 'pointer' }}>
+                Log in / Sign up
+              </button>
+              <a href="/api/auth/google" style={{ width: '100%', textDecoration: 'none' }}>
+                <div style={{ background: '#fff', borderRadius: '30px', padding: '0.65rem', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#444' }}>
+                  <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.7 0 6.7 5.5 2.8 13.5l7.8 6C12.4 13.2 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.6 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-10 6.9-17z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.5-.8-3-.8-4.5s.3-3 .8-4.5l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.8 10.5l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.2 0-11.5-4.2-13.4-9.9l-7.8 6C6.7 42.5 14.7 48 24 48z"/></svg>
+                  Continue with Google
+                </div>
+              </a>
+            </div>
+          )}
         </div>
 
 
@@ -3335,7 +3350,7 @@ export default function App() {
                 <p className="lessons-sub">Type your answer in each box and press <kbd>Enter</kbd> or <kbd>✓</kbd> to check it. Press <kbd>Skip</kbd> to reveal the answer without earning points.</p>
                 <div className="lessons-grid">
                   {(isGuest ? content.lessons.slice(0, 1) : content.lessons).map((lesson, i) => (
-                    <div className="lesson-card" key={i}>
+                    <div className={`lesson-card ${subject}-${i}`} key={i}>
                       <div className="lesson-topic">{lesson.topic}</div>
                       <div className="lesson-desc">{lesson.description}</div>
                       <div className="problems">
