@@ -3111,6 +3111,30 @@ function AdminPanel({ onClose }: { onClose: () => void }) {
   )
 }
 
+const SHOP_ITEMS: { id: string; emoji: string; name: string; cost: number; category: string; zone: 'ground' | 'sky' | 'roof' }[] = [
+  // Furniture
+  { id: 'sofa',        emoji: '🛋️',  name: 'Comfy Sofa',    cost: 50,  category: 'Furniture', zone: 'ground' },
+  { id: 'bookshelf',   emoji: '📚',  name: 'Bookshelf',     cost: 40,  category: 'Furniture', zone: 'ground' },
+  { id: 'desk',        emoji: '🪑',  name: 'Study Desk',    cost: 35,  category: 'Furniture', zone: 'ground' },
+  { id: 'bed',         emoji: '🛏️',  name: 'Cozy Bed',      cost: 60,  category: 'Furniture', zone: 'ground' },
+  { id: 'tv',          emoji: '📺',  name: 'Big TV',        cost: 80,  category: 'Furniture', zone: 'ground' },
+  { id: 'lamp',        emoji: '🪔',  name: 'Floor Lamp',    cost: 25,  category: 'Furniture', zone: 'ground' },
+  // Garden
+  { id: 'tree',        emoji: '🌳',  name: 'Oak Tree',      cost: 30,  category: 'Garden',    zone: 'ground' },
+  { id: 'flowers',     emoji: '🌸',  name: 'Flower Patch',  cost: 20,  category: 'Garden',    zone: 'ground' },
+  { id: 'mushroom',    emoji: '🍄',  name: 'Mushroom',      cost: 15,  category: 'Garden',    zone: 'ground' },
+  { id: 'pond',        emoji: '🪷',  name: 'Pond',          cost: 45,  category: 'Garden',    zone: 'ground' },
+  { id: 'bench',       emoji: '🪵',  name: 'Garden Bench',  cost: 30,  category: 'Garden',    zone: 'ground' },
+  { id: 'mailbox',     emoji: '📬',  name: 'Mailbox',       cost: 20,  category: 'Garden',    zone: 'ground' },
+  // Sky & Roof
+  { id: 'rainbow',     emoji: '🌈',  name: 'Rainbow',       cost: 70,  category: 'Sky',       zone: 'sky' },
+  { id: 'balloon',     emoji: '🎈',  name: 'Balloon',       cost: 25,  category: 'Sky',       zone: 'sky' },
+  { id: 'cloud',       emoji: '☁️',  name: 'Fluffy Cloud',  cost: 20,  category: 'Sky',       zone: 'sky' },
+  { id: 'flag',        emoji: '🚩',  name: 'Roof Flag',     cost: 15,  category: 'Sky',       zone: 'roof' },
+  { id: 'weathervane', emoji: '🌀',  name: 'Weather Vane',  cost: 30,  category: 'Sky',       zone: 'roof' },
+  { id: 'star',        emoji: '⭐',  name: 'Gold Star',     cost: 100, category: 'Sky',       zone: 'sky' },
+]
+
 export default function App() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [adminClosed, setAdminClosed] = useState(false)
@@ -3172,6 +3196,14 @@ export default function App() {
   const [popAnim, setPopAnim] = useState(false)
   const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'geography'>('math')
   const [navPage, setNavPage] = useState<'home' | 'lessons' | 'character' | 'house' | 'shop'>('home')
+  const [ownedItems, setOwnedItems] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('aplus-owned') || '[]') } catch { return [] }
+  })
+  function buyItem(id: string, cost: number) {
+    if (points < cost) return
+    setPoints(p => { const n = p - cost; localStorage.setItem('aplus-points', String(n)); return n })
+    setOwnedItems(prev => { const next = [...prev, id]; localStorage.setItem('aplus-owned', JSON.stringify(next)); return next })
+  }
 
   function saveProfile(p: Profile) {
     setProfile(p)
@@ -3478,29 +3510,110 @@ export default function App() {
         </>)}
 
         {/* MY HOUSE PAGE */}
-        {navPage === 'house' && (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏡</div>
-            <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>My House</h2>
-            <p style={{ color: '#4a6fa5' }}>Decorate your house with items from the Shop! Coming soon.</p>
-          </div>
-        )}
+        {navPage === 'house' && (() => {
+          const placed = SHOP_ITEMS.filter(i => ownedItems.includes(i.id))
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <h2 style={{ color: '#1a3a6b', margin: 0, fontSize: '1.3rem' }}>🏡 My House</h2>
+                <button onClick={() => setNavPage('shop')} style={{ background: '#feca57', color: '#4a3200', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>🛍️ Shop</button>
+              </div>
+              {/* House scene */}
+              <div style={{ background: 'linear-gradient(180deg, #87ceeb 0%, #87ceeb 55%, #7ec850 55%, #7ec850 100%)', borderRadius: '20px', minHeight: '280px', position: 'relative', overflow: 'hidden', border: '2px solid #c8e8c8' }}>
+                {/* House base */}
+                <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '160px', height: '110px', background: '#f5deb3', border: '3px solid #c9956b', borderRadius: '4px 4px 0 0' }} />
+                {/* Roof */}
+                <div style={{ position: 'absolute', bottom: '108px', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '100px solid transparent', borderRight: '100px solid transparent', borderBottom: '70px solid #e53935' }} />
+                {/* Door */}
+                <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '38px', height: '58px', background: '#8B4513', borderRadius: '20px 20px 0 0', border: '2px solid #5a2d0c' }} />
+                <div style={{ position: 'absolute', bottom: '22px', left: 'calc(50% + 8px)', width: '8px', height: '8px', background: '#feca57', borderRadius: '50%' }} />
+                {/* Windows */}
+                <div style={{ position: 'absolute', bottom: '50px', left: 'calc(50% - 55px)', width: '30px', height: '30px', background: '#aee4f8', border: '3px solid #c9956b', borderRadius: '4px' }} />
+                <div style={{ position: 'absolute', bottom: '50px', left: 'calc(50% + 25px)', width: '30px', height: '30px', background: '#aee4f8', border: '3px solid #c9956b', borderRadius: '4px' }} />
+                {/* Sun */}
+                <div style={{ position: 'absolute', top: '18px', right: '24px', fontSize: '2rem' }}>☀️</div>
+                {/* Placed items */}
+                {placed.map((item, idx) => (
+                  <div key={item.id} style={{ position: 'absolute', bottom: item.zone === 'sky' ? `${140 + idx * 30}px` : `${item.zone === 'roof' ? 115 : 2}px`, left: `${10 + (idx % 5) * 18}%`, fontSize: '2rem', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}>
+                    {item.emoji}
+                  </div>
+                ))}
+                {placed.length === 0 && (
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: 'rgba(255,255,255,0.85)', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+                    Buy items from the Shop<br />to decorate!
+                  </div>
+                )}
+              </div>
+              {placed.length > 0 && (
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{ fontWeight: 700, color: '#1a3a6b', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Your items</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {placed.map(item => (
+                      <div key={item.id} style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '12px', padding: '0.5rem 0.8rem', fontSize: '0.85rem', color: '#1a3a6b', display: 'flex', alignItems: 'center', gap: '6px', border: '1.5px solid #d0dff0' }}>
+                        <span style={{ fontSize: '1.2rem' }}>{item.emoji}</span> {item.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* SHOP PAGE */}
-        {navPage === 'shop' && (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛍️</div>
-            <h2 style={{ color: '#4a7fff', marginBottom: '0.5rem' }}>Shop</h2>
-            <p style={{ color: '#4a6fa5' }}>Spend your points on furniture and decorations! Coming soon.</p>
-            <div style={{ background: 'rgba(255,255,255,0.8)', borderRadius: '16px', padding: '1rem', marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ fontSize: '1.5rem' }}>⭐</span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: '#1a3a6b' }}>Your balance</div>
-                <div style={{ color: '#4a6fa5', fontSize: '0.9rem' }}>{points} points</div>
+        {navPage === 'shop' && (() => {
+          const categories = [...new Set(SHOP_ITEMS.map(i => i.category))]
+          return (
+            <div>
+              {/* Balance bar */}
+              <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '16px', padding: '0.9rem 1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d0dff0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.4rem' }}>⭐</span>
+                  <div>
+                    <div style={{ fontWeight: 800, color: '#1a3a6b', fontSize: '1.1rem' }}>{points} pts</div>
+                    <div style={{ fontSize: '0.7rem', color: '#4a6fa5' }}>earn points by solving problems</div>
+                  </div>
+                </div>
+                <button onClick={() => setNavPage('house')} style={{ background: '#a29bfe', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>🏡 My House</button>
               </div>
+
+              {categories.map(cat => (
+                <div key={cat} style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontWeight: 800, color: '#1a3a6b', fontSize: '0.95rem', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{cat}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                    {SHOP_ITEMS.filter(i => i.category === cat).map(item => {
+                      const owned = ownedItems.includes(item.id)
+                      const canAfford = points >= item.cost
+                      return (
+                        <div key={item.id} style={{ background: owned ? 'rgba(100,255,180,0.15)' : 'rgba(255,255,255,0.92)', borderRadius: '14px', padding: '0.8rem 0.6rem', textAlign: 'center', border: owned ? '2px solid #43a047' : '1.5px solid #d0dff0', position: 'relative', transition: 'transform 0.1s' }}>
+                          <div style={{ fontSize: '2.2rem', marginBottom: '4px' }}>{item.emoji}</div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1a3a6b', marginBottom: '4px' }}>{item.name}</div>
+                          {owned ? (
+                            <div style={{ background: '#43a047', color: '#fff', borderRadius: '20px', padding: '3px 10px', fontSize: '0.7rem', fontWeight: 700 }}>✓ Owned</div>
+                          ) : (
+                            <button
+                              onClick={() => canAfford && !isGuest && buyItem(item.id, item.cost)}
+                              style={{ background: canAfford && !isGuest ? '#feca57' : '#e0e0e0', color: canAfford && !isGuest ? '#4a3200' : '#888', border: 'none', borderRadius: '20px', padding: '3px 10px', fontSize: '0.72rem', fontWeight: 700, cursor: canAfford && !isGuest ? 'pointer' : 'default' }}
+                              title={isGuest ? 'Sign up to buy' : !canAfford ? `Need ${item.cost - points} more pts` : ''}
+                            >
+                              ⭐ {item.cost}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+              {isGuest && (
+                <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.8)', borderRadius: '16px', border: '2px dashed #c8d8f0' }}>
+                  <p style={{ color: '#4a6fa5', marginBottom: '0.8rem', fontSize: '0.9rem' }}>Sign up to save your purchases!</p>
+                  <button onClick={() => setShowAuthPanel(true)} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.5rem 1.4rem', fontWeight: 700, cursor: 'pointer' }}>Sign Up Free</button>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )
+        })()}
 
       </div>
     </div>
