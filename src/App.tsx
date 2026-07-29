@@ -1991,124 +1991,183 @@ function CharacterBody({ type, furColor, outfitColor, size = 120 }: {
   const cx = size / 2
   const scale = size / 100
   const s = (n: number) => n * scale
+  const shoe = '#333'
 
-  // darkened shoe color
-  const shoe = '#444'
-  // inner ear / muzzle accent
-  const accent = furColor === '#f0f0f0' ? '#ffc0cb' : '#fff0f0'
+  // Frog uses green body regardless of furColor
+  const bodyColor = type === 'frog' ? '#5cb85c' : furColor
 
-  const ears = () => {
+  const renderHead = () => {
+    if (type === 'frog') {
+      // wide flat frog head
+      return <ellipse cx={cx} cy={s(46)} rx={s(30)} ry={s(22)} fill="#5cb85c" />
+    }
+    if (type === 'bear') {
+      return <circle cx={cx} cy={s(45)} r={s(26)} fill={furColor} />
+    }
+    return <circle cx={cx} cy={s(44)} r={s(25)} fill={bodyColor} />
+  }
+
+  const renderEars = () => {
     if (type === 'bunny') return (
       <>
-        <ellipse cx={cx - s(14)} cy={s(10)} rx={s(7)} ry={s(18)} fill={furColor} />
-        <ellipse cx={cx - s(14)} cy={s(10)} rx={s(4)} ry={s(13)} fill="#ffb3c8" />
-        <ellipse cx={cx + s(14)} cy={s(10)} rx={s(7)} ry={s(18)} fill={furColor} />
-        <ellipse cx={cx + s(14)} cy={s(10)} rx={s(4)} ry={s(13)} fill="#ffb3c8" />
+        {/* tall rabbit ears */}
+        <ellipse cx={cx - s(13)} cy={s(8)} rx={s(7)} ry={s(22)} fill={furColor} />
+        <ellipse cx={cx - s(13)} cy={s(8)} rx={s(4)} ry={s(16)} fill="#ffb3c8" />
+        <ellipse cx={cx + s(13)} cy={s(8)} rx={s(7)} ry={s(22)} fill={furColor} />
+        <ellipse cx={cx + s(13)} cy={s(8)} rx={s(4)} ry={s(16)} fill="#ffb3c8" />
       </>
     )
     if (type === 'fox') return (
       <>
-        <polygon points={`${cx-s(20)},${s(30)} ${cx-s(10)},${s(5)} ${cx-s(2)},${s(22)}`} fill={furColor} />
-        <polygon points={`${cx-s(18)},${s(28)} ${cx-s(10)},${s(9)} ${cx-s(4)},${s(22)}`} fill="#fff0e0" />
-        <polygon points={`${cx+s(20)},${s(30)} ${cx+s(10)},${s(5)} ${cx+s(2)},${s(22)}`} fill={furColor} />
-        <polygon points={`${cx+s(18)},${s(28)} ${cx+s(10)},${s(9)} ${cx+s(4)},${s(22)}`} fill="#fff0e0" />
+        {/* large triangular fox ears */}
+        <polygon points={`${cx-s(26)},${s(32)} ${cx-s(15)},${s(3)} ${cx-s(2)},${s(25)}`} fill={furColor} />
+        <polygon points={`${cx-s(23)},${s(30)} ${cx-s(15)},${s(8)} ${cx-s(5)},${s(25)}`} fill="#f4a460" />
+        <polygon points={`${cx+s(26)},${s(32)} ${cx+s(15)},${s(3)} ${cx+s(2)},${s(25)}`} fill={furColor} />
+        <polygon points={`${cx+s(23)},${s(30)} ${cx+s(15)},${s(8)} ${cx+s(5)},${s(25)}`} fill="#f4a460" />
       </>
     )
     if (type === 'bear') return (
       <>
-        <circle cx={cx - s(18)} cy={s(20)} r={s(10)} fill={furColor} />
-        <circle cx={cx - s(18)} cy={s(20)} r={s(6)} fill={accent} />
-        <circle cx={cx + s(18)} cy={s(20)} r={s(10)} fill={furColor} />
-        <circle cx={cx + s(18)} cy={s(20)} r={s(6)} fill={accent} />
+        {/* big round bear ears */}
+        <circle cx={cx - s(20)} cy={s(22)} r={s(12)} fill={furColor} />
+        <circle cx={cx - s(20)} cy={s(22)} r={s(7)} fill="#c9956b" />
+        <circle cx={cx + s(20)} cy={s(22)} r={s(12)} fill={furColor} />
+        <circle cx={cx + s(20)} cy={s(22)} r={s(7)} fill="#c9956b" />
       </>
     )
     if (type === 'cat') return (
       <>
-        <polygon points={`${cx-s(22)},${s(26)} ${cx-s(14)},${s(4)} ${cx-s(4)},${s(20)}`} fill={furColor} />
-        <polygon points={`${cx-s(20)},${s(25)} ${cx-s(14)},${s(8)} ${cx-s(6)},${s(20)}`} fill="#ffb3c8" />
-        <polygon points={`${cx+s(22)},${s(26)} ${cx+s(14)},${s(4)} ${cx+s(4)},${s(20)}`} fill={furColor} />
-        <polygon points={`${cx+s(20)},${s(25)} ${cx+s(14)},${s(8)} ${cx+s(6)},${s(20)}`} fill="#ffb3c8" />
+        {/* pointy cat ears */}
+        <polygon points={`${cx-s(24)},${s(28)} ${cx-s(16)},${s(2)} ${cx-s(4)},${s(22)}`} fill={furColor} />
+        <polygon points={`${cx-s(21)},${s(26)} ${cx-s(16)},${s(7)} ${cx-s(7)},${s(22)}`} fill="#ffb3c8" />
+        <polygon points={`${cx+s(24)},${s(28)} ${cx+s(16)},${s(2)} ${cx+s(4)},${s(22)}`} fill={furColor} />
+        <polygon points={`${cx+s(21)},${s(26)} ${cx+s(16)},${s(7)} ${cx+s(7)},${s(22)}`} fill="#ffb3c8" />
       </>
     )
     if (type === 'panda') return (
       <>
-        <circle cx={cx - s(18)} cy={s(18)} r={s(11)} fill="#222" />
-        <circle cx={cx + s(18)} cy={s(18)} r={s(11)} fill="#222" />
+        {/* panda round black ears */}
+        <circle cx={cx - s(19)} cy={s(22)} r={s(11)} fill="#222" />
+        <circle cx={cx + s(19)} cy={s(22)} r={s(11)} fill="#222" />
       </>
     )
     if (type === 'raccoon') return (
       <>
-        <ellipse cx={cx - s(16)} cy={s(14)} rx={s(8)} ry={s(11)} fill={furColor} />
-        <ellipse cx={cx - s(16)} cy={s(14)} rx={s(5)} ry={s(7)} fill="#555" />
-        <ellipse cx={cx + s(16)} cy={s(14)} rx={s(8)} ry={s(11)} fill={furColor} />
-        <ellipse cx={cx + s(16)} cy={s(14)} rx={s(5)} ry={s(7)} fill="#555" />
+        {/* raccoon rounded ears with dark tips */}
+        <circle cx={cx - s(18)} cy={s(22)} r={s(10)} fill={furColor} />
+        <circle cx={cx - s(18)} cy={s(18)} r={s(6)} fill="#444" />
+        <circle cx={cx + s(18)} cy={s(22)} r={s(10)} fill={furColor} />
+        <circle cx={cx + s(18)} cy={s(18)} r={s(6)} fill="#444" />
       </>
     )
     if (type === 'frog') return (
       <>
-        <circle cx={cx - s(18)} cy={s(22)} r={s(10)} fill={furColor} />
-        <circle cx={cx + s(18)} cy={s(22)} r={s(10)} fill={furColor} />
-        <circle cx={cx - s(18)} cy={s(22)} r={s(5)} fill="#c0e878" />
-        <circle cx={cx + s(18)} cy={s(22)} r={s(5)} fill="#c0e878" />
+        {/* frog bulgy eyes on top of head */}
+        <circle cx={cx - s(16)} cy={s(26)} r={s(10)} fill="#3a9e3a" />
+        <circle cx={cx + s(16)} cy={s(26)} r={s(10)} fill="#3a9e3a" />
+        <circle cx={cx - s(16)} cy={s(26)} r={s(6)} fill="#222" />
+        <circle cx={cx + s(16)} cy={s(26)} r={s(6)} fill="#222" />
+        <circle cx={cx - s(14)} cy={s(24)} r={s(2)} fill="white" />
+        <circle cx={cx + s(18)} cy={s(24)} r={s(2)} fill="white" />
       </>
     )
     if (type === 'otter') return (
       <>
-        <ellipse cx={cx - s(16)} cy={s(16)} rx={s(9)} ry={s(12)} fill={furColor} />
-        <ellipse cx={cx - s(16)} cy={s(16)} rx={s(5)} ry={s(8)} fill="#c49a6a" />
-        <ellipse cx={cx + s(16)} cy={s(16)} rx={s(9)} ry={s(12)} fill={furColor} />
-        <ellipse cx={cx + s(16)} cy={s(16)} rx={s(5)} ry={s(8)} fill="#c49a6a" />
+        {/* otter small round ears */}
+        <circle cx={cx - s(18)} cy={s(24)} r={s(8)} fill={furColor} />
+        <circle cx={cx - s(18)} cy={s(24)} r={s(4)} fill="#c49a6a" />
+        <circle cx={cx + s(18)} cy={s(24)} r={s(8)} fill={furColor} />
+        <circle cx={cx + s(18)} cy={s(24)} r={s(4)} fill="#c49a6a" />
       </>
     )
     return null
   }
 
-  const facialDetails = () => {
-    if (type === 'fox') return (
+  const renderFace = () => {
+    const eyeY = type === 'frog' ? s(42) : type === 'bear' ? s(43) : s(41)
+    const noseY = type === 'frog' ? s(55) : type === 'bear' ? s(52) : s(50)
+    const mouthY = type === 'frog' ? s(60) : s(55)
+
+    return (
       <>
-        <ellipse cx={cx} cy={s(50)} rx={s(12)} ry={s(9)} fill="#fff0e0" />
-        <ellipse cx={cx} cy={s(45)} rx={s(4)} ry={s(3)} fill="#d4705a" />
+        {/* type-specific face markings */}
+        {type === 'fox' && <>
+          <ellipse cx={cx} cy={s(52)} rx={s(13)} ry={s(10)} fill="#fff8f0" />
+          <ellipse cx={cx} cy={s(48)} rx={s(5)} ry={s(3.5)} fill="#d4705a" />
+        </>}
+        {type === 'bear' && <ellipse cx={cx} cy={s(53)} rx={s(13)} ry={s(9)} fill="#c9956b" />}
+        {type === 'panda' && <>
+          {/* black eye patches */}
+          <ellipse cx={cx-s(10)} cy={eyeY} rx={s(9)} ry={s(8)} fill="#222" />
+          <ellipse cx={cx+s(10)} cy={eyeY} rx={s(9)} ry={s(8)} fill="#222" />
+          <ellipse cx={cx} cy={s(52)} rx={s(12)} ry={s(8)} fill="#fff" />
+        </>}
+        {type === 'raccoon' && <>
+          {/* raccoon mask stripes */}
+          <ellipse cx={cx-s(12)} cy={s(43)} rx={s(9)} ry={s(7)} fill="#555" />
+          <ellipse cx={cx+s(12)} cy={s(43)} rx={s(9)} ry={s(7)} fill="#555" />
+          <ellipse cx={cx} cy={s(51)} rx={s(10)} ry={s(6)} fill="#d4c5a9" />
+        </>}
+        {type === 'cat' && <>
+          {/* cat whiskers */}
+          <line x1={cx-s(6)} y1={s(49)} x2={cx-s(22)} y2={s(46)} stroke="rgba(0,0,0,0.3)" strokeWidth={s(1.2)} />
+          <line x1={cx-s(6)} y1={s(51)} x2={cx-s(22)} y2={s(52)} stroke="rgba(0,0,0,0.3)" strokeWidth={s(1.2)} />
+          <line x1={cx+s(6)} y1={s(49)} x2={cx+s(22)} y2={s(46)} stroke="rgba(0,0,0,0.3)" strokeWidth={s(1.2)} />
+          <line x1={cx+s(6)} y1={s(51)} x2={cx+s(22)} y2={s(52)} stroke="rgba(0,0,0,0.3)" strokeWidth={s(1.2)} />
+        </>}
+        {type === 'otter' && <>
+          {/* otter whiskers + pale muzzle */}
+          <ellipse cx={cx} cy={s(50)} rx={s(11)} ry={s(8)} fill="#d4c5a9" />
+          <line x1={cx-s(5)} y1={s(50)} x2={cx-s(20)} y2={s(47)} stroke="rgba(0,0,0,0.25)" strokeWidth={s(1.2)} />
+          <line x1={cx-s(5)} y1={s(52)} x2={cx-s(20)} y2={s(53)} stroke="rgba(0,0,0,0.25)" strokeWidth={s(1.2)} />
+          <line x1={cx+s(5)} y1={s(50)} x2={cx+s(20)} y2={s(47)} stroke="rgba(0,0,0,0.25)" strokeWidth={s(1.2)} />
+          <line x1={cx+s(5)} y1={s(52)} x2={cx+s(20)} y2={s(53)} stroke="rgba(0,0,0,0.25)" strokeWidth={s(1.2)} />
+        </>}
+        {/* frog has eyes on top, skip normal eyes */}
+        {type !== 'frog' && <>
+          <circle cx={cx - s(9)} cy={eyeY} r={s(5)} fill="#222" />
+          <circle cx={cx + s(9)} cy={eyeY} r={s(5)} fill="#222" />
+          <circle cx={cx - s(7)} cy={eyeY - s(2)} r={s(2)} fill="white" />
+          <circle cx={cx + s(11)} cy={eyeY - s(2)} r={s(2)} fill="white" />
+        </>}
+        {/* nose */}
+        {type === 'frog'
+          ? <ellipse cx={cx} cy={noseY} rx={s(5)} ry={s(3)} fill="#2d7d2d" />
+          : <ellipse cx={cx} cy={noseY} rx={s(4)} ry={s(2.5)} fill="#e88" />
+        }
+        {/* mouth */}
+        {type === 'frog'
+          ? <path d={`M ${cx-s(10)} ${mouthY} Q ${cx} ${mouthY+s(6)} ${cx+s(10)} ${mouthY}`} stroke="#2d7d2d" strokeWidth={s(2)} fill="none" strokeLinecap="round" />
+          : <path d={`M ${cx-s(6)} ${mouthY} Q ${cx} ${mouthY+s(5)} ${cx+s(6)} ${mouthY}`} stroke="#555" strokeWidth={s(1.5)} fill="none" strokeLinecap="round" />
+        }
+        {/* cheeks */}
+        <ellipse cx={cx-s(17)} cy={s(52)} rx={s(6)} ry={s(4)} fill="#ffb3c8" opacity="0.4" />
+        <ellipse cx={cx+s(17)} cy={s(52)} rx={s(6)} ry={s(4)} fill="#ffb3c8" opacity="0.4" />
       </>
     )
-    if (type === 'bear') return (
-      <ellipse cx={cx} cy={s(52)} rx={s(11)} ry={s(8)} fill={accent} />
-    )
-    if (type === 'cat') return (
-      <>
-        <line x1={cx-s(18)} y1={s(50)} x2={cx-s(6)} y2={s(47)} stroke={furColor === '#f0f0f0' ? '#aaa' : '#fff'} strokeWidth={s(1.2)} />
-        <line x1={cx-s(18)} y1={s(52)} x2={cx-s(6)} y2={s(52)} stroke={furColor === '#f0f0f0' ? '#aaa' : '#fff'} strokeWidth={s(1.2)} />
-        <line x1={cx+s(18)} y1={s(50)} x2={cx+s(6)} y2={s(47)} stroke={furColor === '#f0f0f0' ? '#aaa' : '#fff'} strokeWidth={s(1.2)} />
-        <line x1={cx+s(18)} y1={s(52)} x2={cx+s(6)} y2={s(52)} stroke={furColor === '#f0f0f0' ? '#aaa' : '#fff'} strokeWidth={s(1.2)} />
-      </>
-    )
-    if (type === 'panda') return (
-      <>
-        <ellipse cx={cx} cy={s(52)} rx={s(11)} ry={s(8)} fill="#fff" />
-      </>
-    )
-    if (type === 'raccoon') return (
-      <>
-        <ellipse cx={cx-s(11)} cy={s(44)} rx={s(7)} ry={s(5)} fill="#555" />
-        <ellipse cx={cx+s(11)} cy={s(44)} rx={s(7)} ry={s(5)} fill="#555" />
-      </>
-    )
-    return null
   }
 
-  const tail = () => {
-    if (type === 'bunny') return <circle cx={cx + s(26)} cy={s(95)} r={s(8)} fill="#fff" />
+  const renderTail = () => {
+    if (type === 'bunny') return <circle cx={cx + s(27)} cy={s(94)} r={s(9)} fill="rgba(255,255,255,0.85)" />
     if (type === 'fox') return (
-      <path d={`M ${cx+s(26)} ${s(85)} Q ${cx+s(40)} ${s(110)} ${cx+s(30)} ${s(125)}`}
-        stroke={furColor} strokeWidth={s(10)} fill="none" strokeLinecap="round" />
+      <>
+        <path d={`M ${cx+s(25)} ${s(88)} Q ${cx+s(48)} ${s(108)} ${cx+s(35)} ${s(128)}`}
+          stroke={furColor} strokeWidth={s(12)} fill="none" strokeLinecap="round" />
+        <circle cx={cx+s(35)} cy={s(128)} r={s(8)} fill="#fff8f0" />
+      </>
     )
     if (type === 'cat') return (
-      <path d={`M ${cx+s(24)} ${s(90)} Q ${cx+s(50)} ${s(105)} ${cx+s(38)} ${s(130)}`}
+      <path d={`M ${cx+s(25)} ${s(90)} Q ${cx+s(52)} ${s(108)} ${cx+s(38)} ${s(132)}`}
         stroke={furColor} strokeWidth={s(7)} fill="none" strokeLinecap="round" />
     )
     if (type === 'raccoon') return (
-      <path d={`M ${cx+s(24)} ${s(90)} Q ${cx+s(50)} ${s(110)} ${cx+s(36)} ${s(132)}`}
-        stroke={furColor} strokeWidth={s(8)} fill="none" strokeLinecap="round"
-        strokeDasharray={`${s(10)} ${s(6)}`} />
+      <path d={`M ${cx+s(25)} ${s(88)} Q ${cx+s(52)} ${s(112)} ${cx+s(36)} ${s(134)}`}
+        stroke="#888" strokeWidth={s(9)} fill="none" strokeLinecap="round"
+        strokeDasharray={`${s(9)} ${s(7)}`} />
+    )
+    if (type === 'otter') return (
+      <path d={`M ${cx+s(25)} ${s(90)} Q ${cx+s(42)} ${s(112)} ${cx+s(28)} ${s(130)}`}
+        stroke={furColor} strokeWidth={s(11)} fill="none" strokeLinecap="round" />
     )
     return null
   }
@@ -2117,43 +2176,27 @@ function CharacterBody({ type, furColor, outfitColor, size = 120 }: {
 
   return (
     <svg width={size} height={totalH} viewBox={`0 0 ${size} ${totalH}`} style={{ display: 'block' }}>
-      {/* tail (behind body) */}
-      {tail()}
+      {renderTail()}
       {/* legs */}
-      <rect x={cx-s(20)} y={s(100)} width={s(16)} height={s(32)} rx={s(8)} fill={furColor} />
-      <rect x={cx+s(4)} y={s(100)} width={s(16)} height={s(32)} rx={s(8)} fill={furColor} />
+      <rect x={cx-s(20)} y={s(100)} width={s(16)} height={s(34)} rx={s(8)} fill={bodyColor} />
+      <rect x={cx+s(4)} y={s(100)} width={s(16)} height={s(34)} rx={s(8)} fill={bodyColor} />
       {/* shoes */}
-      <ellipse cx={cx-s(12)} cy={s(133)} rx={s(12)} ry={s(7)} fill={shoe} />
-      <ellipse cx={cx+s(12)} cy={s(133)} rx={s(12)} ry={s(7)} fill={shoe} />
+      <ellipse cx={cx-s(12)} cy={s(134)} rx={s(13)} ry={s(7)} fill={shoe} />
+      <ellipse cx={cx+s(12)} cy={s(134)} rx={s(13)} ry={s(7)} fill={shoe} />
       {/* body/outfit */}
-      <rect x={cx-s(24)} y={s(62)} width={s(48)} height={s(44)} rx={s(14)} fill={outfitColor} />
-      {/* outfit collar highlight */}
-      <ellipse cx={cx} cy={s(63)} rx={s(12)} ry={s(5)} fill="rgba(255,255,255,0.25)" />
-      {/* left arm */}
-      <rect x={cx-s(40)} y={s(65)} width={s(16)} height={s(28)} rx={s(8)} fill={furColor} />
-      <circle cx={cx-s(32)} cy={s(93)} r={s(9)} fill={furColor} />
-      {/* right arm */}
-      <rect x={cx+s(24)} y={s(65)} width={s(16)} height={s(28)} rx={s(8)} fill={furColor} />
-      <circle cx={cx+s(32)} cy={s(93)} r={s(9)} fill={furColor} />
-      {/* ears (drawn before head so head overlaps) */}
-      {ears()}
+      <rect x={cx-s(25)} y={s(62)} width={s(50)} height={s(44)} rx={s(14)} fill={outfitColor} />
+      <ellipse cx={cx} cy={s(63)} rx={s(13)} ry={s(5)} fill="rgba(255,255,255,0.22)" />
+      {/* arms */}
+      <rect x={cx-s(41)} y={s(66)} width={s(16)} height={s(28)} rx={s(8)} fill={bodyColor} />
+      <circle cx={cx-s(33)} cy={s(94)} r={s(9)} fill={bodyColor} />
+      <rect x={cx+s(25)} y={s(66)} width={s(16)} height={s(28)} rx={s(8)} fill={bodyColor} />
+      <circle cx={cx+s(33)} cy={s(94)} r={s(9)} fill={bodyColor} />
+      {/* ears behind head */}
+      {renderEars()}
       {/* head */}
-      <circle cx={cx} cy={s(44)} r={s(26)} fill={furColor} />
-      {/* facial details (muzzle, mask, etc.) */}
-      {facialDetails()}
-      {/* eyes */}
-      <circle cx={cx-s(9)} cy={s(41)} r={s(5)} fill="#222" />
-      <circle cx={cx+s(9)} cy={s(41)} r={s(5)} fill="#222" />
-      <circle cx={cx-s(7)} cy={s(39)} r={s(2)} fill="white" />
-      <circle cx={cx+s(11)} cy={s(39)} r={s(2)} fill="white" />
-      {/* nose */}
-      <ellipse cx={cx} cy={s(49)} rx={s(4)} ry={s(2.5)} fill="#e88" />
-      {/* smile */}
-      <path d={`M ${cx-s(6)} ${s(53)} Q ${cx} ${s(58)} ${cx+s(6)} ${s(53)}`}
-        stroke="#555" strokeWidth={s(1.5)} fill="none" strokeLinecap="round" />
-      {/* cheeks */}
-      <ellipse cx={cx-s(17)} cy={s(51)} rx={s(6)} ry={s(4)} fill="#ffb3c8" opacity="0.45" />
-      <ellipse cx={cx+s(17)} cy={s(51)} rx={s(6)} ry={s(4)} fill="#ffb3c8" opacity="0.45" />
+      {renderHead()}
+      {/* face */}
+      {renderFace()}
     </svg>
   )
 }
@@ -2340,23 +2383,53 @@ function toDecimal(s: string): number | null {
   return isNaN(n) ? null : n
 }
 
-function answersMatch(userRaw: string, correctRaw: string): boolean {
-  const user = userRaw.trim().toLowerCase().replace(/\s+/g, '')
-  const correct = correctRaw.trim().toLowerCase().replace(/\s+/g, '')
+function normalize(s: string) {
+  return s.trim().toLowerCase()
+    .replace(/[^a-z0-9,.\/\-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
-  // exact match (after normalizing spaces/case)
+function answersMatch(userRaw: string, correctRaw: string): boolean {
+  const user = normalize(userRaw)
+  const correct = normalize(correctRaw)
+
   if (user === correct) return true
 
-  // numeric / fraction equivalence
-  const uVal = toDecimal(user)
-  const cVal = toDecimal(correct)
-  if (uVal !== null && cVal !== null) {
-    return Math.abs(uVal - cVal) < 0.001
-  }
+  // numeric equivalence
+  const uVal = toDecimal(user.replace(/\s/g, ''))
+  const cVal = toDecimal(correct.replace(/\s/g, ''))
+  if (uVal !== null && cVal !== null) return Math.abs(uVal - cVal) < 0.001
 
-  // strip trailing zeros on decimals: 0.50 == 0.5
   const uNum = parseFloat(user), cNum = parseFloat(correct)
   if (!isNaN(uNum) && !isNaN(cNum)) return Math.abs(uNum - cNum) < 0.001
+
+  // comma-separated lists: order doesn't matter
+  const splitParts = (s: string) => s.split(/[,;\/]/).map(x => x.trim()).filter(Boolean).sort()
+  const uParts = splitParts(user)
+  const cParts = splitParts(correct)
+  if (uParts.length > 1 || cParts.length > 1) {
+    if (uParts.length === cParts.length) {
+      return uParts.every((p, i) => {
+        const cv = toDecimal(cParts[i])
+        const uv = toDecimal(p)
+        if (cv !== null && uv !== null) return Math.abs(uv - cv) < 0.001
+        return p === cParts[i]
+      })
+    }
+  }
+
+  // fuzzy word match: user answer contains all key words (for text answers)
+  const keyWords = correct.split(' ').filter(w => w.length > 2)
+  if (keyWords.length >= 2) {
+    const hits = keyWords.filter(w => user.includes(w))
+    if (hits.length / keyWords.length >= 0.8) return true
+  }
+
+  // single word answer: allow if starts with same letters (e.g. "photosynthesis" vs "photosinthesis")
+  if (!correct.includes(' ') && correct.length > 4) {
+    if (user.slice(0, Math.floor(correct.length * 0.75)) === correct.slice(0, Math.floor(correct.length * 0.75))) return true
+  }
 
   return false
 }
@@ -2481,6 +2554,7 @@ function Problem({ q, a, explain, onCorrect }: { q: string; a: string; explain: 
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'revealed'>('idle')
   const [attempts, setAttempts] = useState(0)
+  const [showHelp, setShowHelp] = useState(false)
 
   if (parseStacked(q)) {
     return <StackedProblem q={q} a={a} explain={explain} onCorrect={onCorrect} />
@@ -2497,8 +2571,22 @@ function Problem({ q, a, explain, onCorrect }: { q: string; a: string; explain: 
   }
 
   return (
-    <div className={`problem ${status}`}>
-      <span className="problem-q">{q}</span>
+    <div className={`problem ${status}`} style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+        <span className="problem-q">{q}</span>
+        {status === 'idle' && (
+          <button
+            onClick={() => setShowHelp(h => !h)}
+            title="Help"
+            style={{ flexShrink: 0, background: showHelp ? '#4a7fff' : 'rgba(74,127,255,0.12)', color: showHelp ? '#fff' : '#4a7fff', border: '1.5px solid #4a7fff', borderRadius: '50%', width: '26px', height: '26px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', lineHeight: 1, padding: 0 }}
+          >?</button>
+        )}
+      </div>
+      {showHelp && status === 'idle' && (
+        <div style={{ background: '#eef4ff', border: '1.5px solid #b3d0ff', borderRadius: '10px', padding: '0.6rem 0.9rem', marginTop: '0.5rem', fontSize: '0.85rem', color: '#1a3a6b', lineHeight: 1.5 }}>
+          <strong>💡 Hint:</strong> {explain}
+        </div>
+      )}
       {status === 'correct' ? (
         <div className="problem-feedback correct">
           <span className="fb-result">✅ Correct!</span>
