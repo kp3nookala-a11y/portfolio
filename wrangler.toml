@@ -1,0 +1,7 @@
+name = "portfolio"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aplus-math-db"
+database_id = "cbee8215-f4f6-40d7-b525-6158e182b92c"

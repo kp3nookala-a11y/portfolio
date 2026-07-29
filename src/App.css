@@ -198,7 +198,7 @@ kbd {
 }
 
 body {
-  background: #0a0f2c;
+  background: #a9cce3;
   color: #e0e8ff;
   font-family: 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh;
@@ -222,7 +222,7 @@ body {
 
 .floater {
   position: absolute;
-  color: #4a7fff;
+  color: #0a1f6e;
   font-family: 'Courier New', monospace;
   white-space: nowrap;
   user-select: none;
@@ -315,7 +315,7 @@ body {
   gap: 1rem;
   flex-wrap: wrap;
 }
-.grade-label { color: #7eb8ff; font-weight: 600; font-size: 1rem; white-space: nowrap; }
+.grade-label { color: #ffffff; font-weight: 600; font-size: 1rem; white-space: nowrap; }
 .grade-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .grade-btn {
   width: 42px; height: 42px;
@@ -638,8 +638,8 @@ body {
 
 .pick-grade-hint {
   text-align: center;
-  color: #4a6fa5;
-  font-size: 0.95rem;
+  color: #ffffff;
+  font-size: 1.3rem;
   padding: 1.5rem;
   background: rgba(10,15,44,0.5);
   border-radius: 12px;
