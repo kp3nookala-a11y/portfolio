@@ -2907,7 +2907,79 @@ function GameArcade({ onClose }: { onClose: () => void }) {
 
 // ── Main App ───────────────────────────────────────────────
 // ── Auth screen ──────────────────────────────────────────────────────────────
-type AuthUser = { email: string; streak: number }
+type LeaderboardEntry = {
+  display_name: string
+  total_points: number
+  current_streak: number
+  char_type: string
+  fur_color: string
+  outfit_color: string
+}
+
+function LeaderboardPage() {
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/leaderboard')
+      .then(r => r.json() as Promise<LeaderboardEntry[]>)
+      .then(d => { setEntries(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32']
+
+  return (
+    <div style={{ padding: '1rem 0' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '2.5rem' }}>🏆</div>
+        <h2 style={{ color: '#1a3a6b', margin: '0.3rem 0 0.2rem', fontSize: '1.5rem' }}>Leaderboard</h2>
+        <p style={{ color: '#4a6fa5', margin: 0, fontSize: '0.88rem' }}>Top students by total points earned</p>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', color: '#4a6fa5', padding: '2rem' }}>Loading...</div>
+      ) : entries.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌟</div>
+          <p style={{ color: '#4a6fa5' }}>No one on the leaderboard yet — be the first!</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          {entries.map((e, i) => (
+            <div key={i} style={{
+              background: i < 3 ? `linear-gradient(135deg, ${['#fffbe6','#f5f5f5','#fff3e0'][i]}, #fff)` : 'rgba(255,255,255,0.92)',
+              borderRadius: '14px', padding: '0.85rem 1rem',
+              border: i < 3 ? `2px solid ${medalColors[i]}40` : '1px solid rgba(0,0,0,0.07)',
+              display: 'flex', alignItems: 'center', gap: '0.9rem',
+            }}>
+              <div style={{ width: '32px', textAlign: 'center', fontWeight: 800, fontSize: i < 3 ? '1.3rem' : '1rem', color: i < 3 ? medalColors[i] : '#8aa0c0' }}>
+                {i < 3 ? ['🥇','🥈','🥉'][i] : `#${i + 1}`}
+              </div>
+              <div style={{ flexShrink: 0 }}>
+                {e.char_type ? (
+                  <CharacterBody type={e.char_type as CharType} furColor={e.fur_color || '#f5deb3'} outfitColor={e.outfit_color || '#4a7fff'} size={48} />
+                ) : (
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#e8f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>🐾</div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, color: '#1a3a6b', fontSize: '1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.display_name}</div>
+                <div style={{ color: '#4a6fa5', fontSize: '0.8rem' }}>🔥 {e.current_streak ?? 0}-day streak</div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontWeight: 800, color: '#ff6b6b', fontSize: '1.1rem' }}>⭐ {(e.total_points ?? 0).toLocaleString()}</div>
+                <div style={{ color: '#8aa0c0', fontSize: '0.75rem' }}>pts</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type AuthUser = { email: string; streak: number; displayName?: string; totalPoints?: number }
 
 const SAMPLE_PROBLEMS = [
   { q: '34 + 47 = ?', a: '81', hint: 'Add ones: 4+7=11, carry the 1' },
@@ -2975,23 +3047,27 @@ function AuthScreen({ onAuth }: { onAuth: (user: AuthUser, token: string) => voi
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (mode === 'signup' && !displayName.trim()) { setError('Please enter a display name'); return }
     setLoading(true)
     try {
+      const body: any = { email, password }
+      if (mode === 'signup') body.display_name = displayName.trim()
       const res = await fetch(`/api/${mode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       })
       const data = await res.json() as any
       if (!res.ok) { setError(data.error ?? 'Something went wrong'); return }
       localStorage.setItem('aplus-token', data.token)
-      onAuth({ email: data.email, streak: data.streak }, data.token)
+      onAuth({ email: data.email, streak: data.streak, displayName: data.displayName }, data.token)
     } catch {
       setError('Could not connect to server')
     } finally {
@@ -3011,6 +3087,13 @@ function AuthScreen({ onAuth }: { onAuth: (user: AuthUser, token: string) => voi
         </div>
 
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+          {mode === 'signup' && (
+            <input
+              type="text" placeholder="Display name (shown on leaderboard)" required value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              style={{ padding: '0.75rem 1rem', borderRadius: '10px', border: '1.5px solid #c8d8f0', fontSize: '1rem', outline: 'none', color: '#1a2a6e' }}
+            />
+          )}
           <input
             type="email" placeholder="Email address" required value={email}
             onChange={e => setEmail(e.target.value)}
@@ -3195,7 +3278,7 @@ export default function App() {
     if (!token) { setAuthLoading(false); return }
     fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json() as Promise<any>)
-      .then(d => { if (d.email) { console.log('APLUS email:', d.email, '| match:', d.email === ADMIN_EMAIL); setAuthUser({ email: d.email, streak: d.streak }) } })
+      .then(d => { if (d.email) { console.log('APLUS email:', d.email, '| match:', d.email === ADMIN_EMAIL); setAuthUser({ email: d.email, streak: d.streak, displayName: d.displayName, totalPoints: d.totalPoints }) } })
       .catch(() => {})
       .finally(() => setAuthLoading(false))
   }, [])
@@ -3229,7 +3312,7 @@ export default function App() {
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
   const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'geography'>('math')
-  const [navPage, setNavPage] = useState<'home' | 'lessons' | 'character' | 'house' | 'shop'>('home')
+  const [navPage, setNavPage] = useState<'home' | 'lessons' | 'character' | 'house' | 'shop' | 'leaderboard'>('home')
   const [ownedItems, setOwnedItems] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('aplus-owned') || '[]') } catch { return [] }
   })
@@ -3244,6 +3327,10 @@ export default function App() {
     setGrade(p.grade)
     setEditingProfile(false)
     localStorage.setItem('aplus-profile', JSON.stringify(p))
+    const token = localStorage.getItem('aplus-token')
+    if (token) {
+      fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ display_name: p.name, char_type: p.charType, fur_color: p.furColor, outfit_color: p.outfitColor }) }).catch(() => {})
+    }
   }
 
   function addPoint() {
@@ -3254,6 +3341,10 @@ export default function App() {
       localStorage.setItem('aplus-points-date', new Date().toISOString().slice(0, 10))
       return next
     })
+    const token = localStorage.getItem('aplus-token')
+    if (token) {
+      fetch('/api/points', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ amount: 10 }) }).catch(() => {})
+    }
   }
 
   const shuffledCurriculum = useMemo(() => {
@@ -3366,11 +3457,12 @@ export default function App() {
       {/* Bottom nav bar */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200, background: 'rgba(255,255,255,0.97)', borderTop: '1.5px solid #d8eaf8', display: 'flex', justifyContent: 'space-around', padding: '0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom))' }}>
         {([
-          { id: 'home',      emoji: '🏠', label: 'Home' },
-          { id: 'lessons',   emoji: '📚', label: 'Lessons' },
-          { id: 'character', emoji: '🎨', label: 'Character' },
-          { id: 'house',     emoji: '🏡', label: 'My House' },
-          { id: 'shop',      emoji: '🛍️', label: 'Shop' },
+          { id: 'home',        emoji: '🏠', label: 'Home' },
+          { id: 'lessons',     emoji: '📚', label: 'Lessons' },
+          { id: 'leaderboard', emoji: '🏆', label: 'Ranks' },
+          { id: 'character',   emoji: '🎨', label: 'Character' },
+          { id: 'house',       emoji: '🏡', label: 'My House' },
+          { id: 'shop',        emoji: '🛍️', label: 'Shop' },
         ] as const).map(n => (
           <button key={n.id} onClick={() => setNavPage(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '0 0.5rem', opacity: navPage === n.id ? 1 : 0.45, transition: 'opacity 0.15s' }}>
             <span style={{ fontSize: '1.4rem' }}>{n.emoji}</span>
@@ -3528,6 +3620,9 @@ export default function App() {
             )}
           </>)}
         </>)}
+
+        {/* LEADERBOARD PAGE */}
+        {navPage === 'leaderboard' && <LeaderboardPage />}
 
         {/* CHARACTER PAGE */}
         {navPage === 'character' && (<>

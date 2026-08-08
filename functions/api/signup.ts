@@ -5,7 +5,7 @@ export const onRequestOptions: PagesFunction = async () => corsOptions()
 
 export const onRequestPost: PagesFunction<Env> = async (ctx) => {
   try {
-    const { email, password } = await ctx.request.json<{ email: string; password: string }>()
+    const { email, password, display_name } = await ctx.request.json<{ email: string; password: string; display_name?: string }>()
     if (!email || !password) return json({ error: 'Email and password required' }, 400)
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Invalid email address' }, 400)
     if (password.length < 6) return json({ error: 'Password must be at least 6 characters' }, 400)
@@ -16,8 +16,8 @@ export const onRequestPost: PagesFunction<Env> = async (ctx) => {
 
     const id = randomHex(16)
     const hash = await hashPassword(password)
-    await db.prepare('INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)')
-      .bind(id, email.toLowerCase(), hash, Date.now()).run()
+    await db.prepare('INSERT INTO users (id, email, password_hash, created_at, display_name) VALUES (?, ?, ?, ?, ?)')
+      .bind(id, email.toLowerCase(), hash, Date.now(), display_name?.trim() || null).run()
 
     const token = randomHex(32)
     const expires = Date.now() + 30 * 24 * 60 * 60 * 1000

@@ -65,14 +65,14 @@ export function daysBetween(a: string, b: string): number {
 export async function getSessionUser(
   db: D1Database,
   request: Request
-): Promise<{ id: string; email: string } | null> {
+): Promise<{ id: string; email: string; display_name?: string } | null> {
   const auth = request.headers.get('Authorization')
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null
   if (!token) return null
   const row = await db
-    .prepare('SELECT u.id, u.email FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = ? AND s.expires_at > ?')
+    .prepare('SELECT u.id, u.email, u.display_name FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = ? AND s.expires_at > ?')
     .bind(token, Date.now())
-    .first<{ id: string; email: string }>()
+    .first<{ id: string; email: string; display_name?: string }>()
   return row ?? null
 }
 
