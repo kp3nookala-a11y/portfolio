@@ -2907,6 +2907,121 @@ function GameArcade({ onClose }: { onClose: () => void }) {
 
 // ── Main App ───────────────────────────────────────────────
 // ── Auth screen ──────────────────────────────────────────────────────────────
+const AI_DAILY_LIMIT = 5
+
+function AIStudyPage({ subject, grade, topic }: { subject: string; grade: number | null; topic: string }) {
+  const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string }[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [usedToday, setUsedToday] = useState(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10)
+      const saved = localStorage.getItem('ace-ai-date')
+      if (saved !== today) { localStorage.setItem('ace-ai-count', '0'); localStorage.setItem('ace-ai-date', today) }
+      return parseInt(localStorage.getItem('ace-ai-count') || '0')
+    } catch { return 0 }
+  })
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
+
+  const remaining = AI_DAILY_LIMIT - usedToday
+  const topicLabel = topic || `${subject} Grade ${grade ?? 1}`
+
+  async function send() {
+    if (!input.trim() || loading || remaining <= 0) return
+    const userMsg = input.trim()
+    setInput('')
+    const newHistory = [...messages, { role: 'user' as const, text: userMsg }]
+    setMessages(newHistory)
+    setLoading(true)
+
+    const newCount = usedToday + 1
+    setUsedToday(newCount)
+    localStorage.setItem('ace-ai-count', String(newCount))
+
+    try {
+      const res = await fetch('/api/study', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grade: grade ?? 1, topic: topicLabel, subject, message: userMsg, history: messages }),
+      })
+      const data = await res.json() as any
+      setMessages([...newHistory, { role: 'model', text: data.reply ?? data.error ?? 'Something went wrong.' }])
+    } catch {
+      setMessages([...newHistory, { role: 'model', text: 'Could not connect. Try again!' }])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', maxHeight: '600px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '0.8rem' }}>
+        <div style={{ fontSize: '1.8rem' }}>🤖</div>
+        <h2 style={{ color: '#1a3a6b', margin: '0.2rem 0 0', fontSize: '1.2rem' }}>AI Study Mode</h2>
+        <p style={{ color: '#4a6fa5', margin: '0.2rem 0 0', fontSize: '0.8rem' }}>
+          Studying: <strong>{topicLabel}</strong>
+        </p>
+        <div style={{ display: 'inline-block', background: remaining > 1 ? '#e8f5e9' : '#fff3e0', borderRadius: '20px', padding: '0.2rem 0.8rem', fontSize: '0.78rem', fontWeight: 700, color: remaining > 1 ? '#2e7d32' : '#e65100', marginTop: '0.3rem' }}>
+          {remaining > 0 ? `${remaining} questions left today` : '⛔ Daily limit reached — come back tomorrow!'}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: '0.5rem 0', marginBottom: '0.5rem' }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#8aa0c0', padding: '2rem 1rem', fontSize: '0.9rem' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
+            Ask me anything about <strong>{topicLabel}</strong>!<br />
+            <span style={{ fontSize: '0.8rem' }}>e.g. "Can you explain this?" or "Give me a hint"</span>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            <div style={{
+              maxWidth: '80%', padding: '0.65rem 0.9rem', borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+              background: m.role === 'user' ? '#4a7fff' : 'rgba(255,255,255,0.95)',
+              color: m.role === 'user' ? '#fff' : '#1a3a6b',
+              fontSize: '0.9rem', lineHeight: '1.4',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              border: m.role === 'model' ? '1px solid rgba(0,0,0,0.07)' : 'none',
+            }}>
+              {m.role === 'model' && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4a7fff', display: 'block', marginBottom: '0.2rem' }}>🤖 Tutor</span>}
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <div style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '18px 18px 18px 4px', padding: '0.65rem 0.9rem', color: '#8aa0c0', fontSize: '0.85rem' }}>
+              🤖 Thinking...
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+          placeholder={remaining > 0 ? 'Ask your tutor...' : 'Daily limit reached'}
+          disabled={remaining <= 0 || loading}
+          style={{ flex: 1, padding: '0.7rem 1rem', borderRadius: '12px', border: '1.5px solid #c8d8f0', fontSize: '0.95rem', outline: 'none', color: '#1a2a6e', background: remaining <= 0 ? '#f5f5f5' : '#fff' }}
+        />
+        <button
+          onClick={send}
+          disabled={remaining <= 0 || loading || !input.trim()}
+          style={{ background: remaining > 0 && !loading ? '#4a7fff' : '#ccc', color: '#fff', border: 'none', borderRadius: '12px', padding: '0.7rem 1.1rem', fontWeight: 700, cursor: remaining > 0 && !loading ? 'pointer' : 'not-allowed', fontSize: '1rem' }}
+        >
+          ➤
+        </button>
+      </div>
+    </div>
+  )
+}
+
 type LeaderboardEntry = {
   display_name: string
   total_points: number
@@ -3312,7 +3427,7 @@ export default function App() {
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
   const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'geography'>('math')
-  const [navPage, setNavPage] = useState<'home' | 'lessons' | 'character' | 'house' | 'shop' | 'leaderboard'>('home')
+  const [navPage, setNavPage] = useState<'home' | 'lessons' | 'ai' | 'character' | 'house' | 'shop' | 'leaderboard'>('home')
   const [ownedItems, setOwnedItems] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('aplus-owned') || '[]') } catch { return [] }
   })
@@ -3459,6 +3574,7 @@ export default function App() {
         {([
           { id: 'home',        emoji: '🏠', label: 'Home' },
           { id: 'lessons',     emoji: '📚', label: 'Lessons' },
+          { id: 'ai',          emoji: '🤖', label: 'AI Tutor' },
           { id: 'leaderboard', emoji: '🏆', label: 'Ranks' },
           { id: 'character',   emoji: '🎨', label: 'Character' },
           { id: 'house',       emoji: '🏡', label: 'My House' },
@@ -3620,6 +3736,15 @@ export default function App() {
             )}
           </>)}
         </>)}
+
+        {/* AI TUTOR PAGE */}
+        {navPage === 'ai' && (
+          <AIStudyPage
+            subject={subject}
+            grade={grade}
+            topic={content?.lessons[0]?.topic ?? `${subject} Grade ${grade ?? 1}`}
+          />
+        )}
 
         {/* LEADERBOARD PAGE */}
         {navPage === 'leaderboard' && <LeaderboardPage />}
