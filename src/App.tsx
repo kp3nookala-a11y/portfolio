@@ -3439,6 +3439,11 @@ export default function App() {
   const [popAnim, setPopAnim] = useState(false)
   const [guestAnswers, setGuestAnswers] = useState(0)
   const [showSignupNudge, setShowSignupNudge] = useState(false)
+  const [, setSolvedProblems] = useState<Set<string>>(new Set())
+  const [gradeReward, setGradeReward] = useState<{ grade: number; subject: string } | null>(null)
+  const [claimedRewards, setClaimedRewards] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('ace-claimed-rewards') || '[]')) } catch { return new Set() }
+  })
   const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'geography'>('math')
   const [navPage, setNavPage] = useState<'home' | 'lessons' | 'ai' | 'character' | 'house' | 'shop' | 'leaderboard'>('home')
   const [ownedItems, setOwnedItems] = useState<string[]>(() => {
@@ -3476,6 +3481,23 @@ export default function App() {
       setGuestAnswers(n => {
         const next = n + 1
         if (next === 3) setShowSignupNudge(true)
+        return next
+      })
+    }
+  }
+
+  function checkGradeComplete(newSolved: Set<string>, currentGrade: number, currentSubject: string, gradeContent: { lessons: { problems: unknown[] }[] }) {
+    const rewardKey = `${currentSubject}-${currentGrade}`
+    if (claimedRewards.has(rewardKey)) return
+    const totalProblems = gradeContent.lessons.reduce((sum, l) => sum + l.problems.length, 0)
+    const solvedInGrade = gradeContent.lessons.reduce((sum, lesson, li) =>
+      sum + lesson.problems.filter((_, pi) => newSolved.has(`${currentSubject}-${currentGrade}-${li}-${pi}`)).length, 0)
+    if (totalProblems > 0 && solvedInGrade >= totalProblems) {
+      setGradeReward({ grade: currentGrade, subject: currentSubject })
+      setClaimedRewards(prev => {
+        const next = new Set(prev)
+        next.add(rewardKey)
+        localStorage.setItem('ace-claimed-rewards', JSON.stringify([...next]))
         return next
       })
     }
@@ -3526,6 +3548,68 @@ export default function App() {
   return (
     <div className="page">
       {showGame && <GameArcade onClose={() => setShowGame(false)} />}
+
+      {/* Grade completion reward modal */}
+      {gradeReward && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'linear-gradient(135deg, #fff9e6, #fff)', borderRadius: '24px', padding: '2rem 1.5rem', maxWidth: '360px', width: '100%', textAlign: 'center', boxShadow: '0 12px 60px rgba(0,0,0,0.25)', border: '2px solid #feca57' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '0.3rem' }}>🎉</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '3px', color: '#feca57', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Grade Cleared!</div>
+            <h2 style={{ color: '#1a3a6b', margin: '0 0 0.3rem', fontSize: '1.4rem' }}>
+              {gradeReward.subject.charAt(0).toUpperCase() + gradeReward.subject.slice(1)} Grade {gradeReward.grade} ✓
+            </h2>
+            <p style={{ color: '#4a6fa5', fontSize: '0.88rem', margin: '0 0 1.2rem' }}>
+              You completed every problem in this grade. Keep going!
+            </p>
+
+            {/* Badge */}
+            <div style={{ background: 'linear-gradient(135deg, #feca57, #ff6b6b)', borderRadius: '16px', padding: '1rem', margin: '0 auto 1.2rem', maxWidth: '220px' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.3rem' }}>
+                {{ math: '➕', reading: '📖', writing: '✏️', geography: '🌍' }[gradeReward.subject] ?? '⭐'}
+              </div>
+              <div style={{ fontWeight: 800, color: '#fff', fontSize: '1rem' }}>
+                {gradeReward.subject.charAt(0).toUpperCase() + gradeReward.subject.slice(1)} Grade {gradeReward.grade} Master
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.78rem', marginTop: '0.2rem' }}>Ace Academy</div>
+            </div>
+
+            {/* Share button — only for logged in */}
+            {!isGuest ? (
+              <button
+                onClick={() => {
+                  const text = `🎉 I just completed ${gradeReward.subject.charAt(0).toUpperCase() + gradeReward.subject.slice(1)} Grade ${gradeReward.grade} on Ace Academy! Free learning for all grades 👉 kiannookala.com`
+                  if (navigator.share) {
+                    navigator.share({ title: 'Ace Academy', text, url: 'https://kiannookala.com' }).catch(() => {})
+                  } else {
+                    navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard! Paste it anywhere to share 🎉'))
+                  }
+                }}
+                style={{ width: '100%', background: '#25D366', color: '#fff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: '0.6rem' }}
+              >
+                📤 Share Your Achievement
+              </button>
+            ) : (
+              <button
+                onClick={() => { setGradeReward(null); setShowAuthPanel(true) }}
+                style={{ width: '100%', background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: '0.6rem' }}
+              >
+                Sign Up to Share Your Badge →
+              </button>
+            )}
+
+            <button
+              onClick={() => { setGradeReward(null); setGrade(g => g && g < 12 ? g + 1 : g) }}
+              style={{ width: '100%', background: grade && grade < 12 ? '#ff6b6b' : '#a29bfe', color: '#fff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', marginBottom: '0.5rem' }}
+            >
+              {grade && grade < 12 ? `🚀 Level Up to Grade ${(grade ?? 0) + 1}!` : '🏆 You finished all grades!'}
+            </button>
+
+            <button onClick={() => setGradeReward(null)} style={{ background: 'none', border: 'none', color: '#8aa0c0', fontSize: '0.85rem', cursor: 'pointer' }}>
+              Stay on Grade {gradeReward.grade}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Guest signup nudge popup */}
       {showSignupNudge && isGuest && (
@@ -3766,7 +3850,18 @@ export default function App() {
                       <div className="lesson-desc">{lesson.description}</div>
                       <div className="problems">
                         {lesson.problems.map((p, j) => (
-                          <Problem key={`${grade}-${i}-${j}`} q={p.q} a={p.a} explain={p.explain} onCorrect={addPoint} />
+                          <Problem key={`${grade}-${i}-${j}`} q={p.q} a={p.a} explain={p.explain} onCorrect={() => {
+                            const key = `${subject}-${grade}-${i}-${j}`
+                            addPoint()
+                            if (grade && content) {
+                              setSolvedProblems(prev => {
+                                const next = new Set(prev)
+                                next.add(key)
+                                checkGradeComplete(next, grade, subject, content)
+                                return next
+                              })
+                            }
+                          }} />
                         ))}
                       </div>
                     </div>
