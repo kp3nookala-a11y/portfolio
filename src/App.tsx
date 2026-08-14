@@ -3031,7 +3031,7 @@ type LeaderboardEntry = {
   outfit_color: string
 }
 
-function LeaderboardPage() {
+function LeaderboardPage({ isGuest, onSignup }: { isGuest: boolean; onSignup: () => void }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -3067,6 +3067,9 @@ function LeaderboardPage() {
               borderRadius: '14px', padding: '0.85rem 1rem',
               border: i < 3 ? `2px solid ${medalColors[i]}40` : '1px solid rgba(0,0,0,0.07)',
               display: 'flex', alignItems: 'center', gap: '0.9rem',
+              filter: isGuest && i >= 3 ? 'blur(4px)' : 'none',
+              userSelect: isGuest && i >= 3 ? 'none' : 'auto',
+              pointerEvents: isGuest && i >= 3 ? 'none' : 'auto',
             }}>
               <div style={{ width: '32px', textAlign: 'center', fontWeight: 800, fontSize: i < 3 ? '1.3rem' : '1rem', color: i < 3 ? medalColors[i] : '#8aa0c0' }}>
                 {i < 3 ? ['🥇','🥈','🥉'][i] : `#${i + 1}`}
@@ -3088,6 +3091,14 @@ function LeaderboardPage() {
               </div>
             </div>
           ))}
+          {isGuest && entries.length > 3 && (
+            <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.95)', borderRadius: '14px', border: '1.5px solid #c8d8f0' }}>
+              <div style={{ fontWeight: 700, color: '#1a3a6b', marginBottom: '0.4rem' }}>🔒 {entries.length - 3} more players hidden</div>
+              <button onClick={onSignup} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.6rem 1.4rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+                Sign Up to See All →
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -3426,6 +3437,8 @@ export default function App() {
   })
   const [showGame, setShowGame] = useState(false)
   const [popAnim, setPopAnim] = useState(false)
+  const [guestAnswers, setGuestAnswers] = useState(0)
+  const [showSignupNudge, setShowSignupNudge] = useState(false)
   const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'geography'>('math')
   const [navPage, setNavPage] = useState<'home' | 'lessons' | 'ai' | 'character' | 'house' | 'shop' | 'leaderboard'>('home')
   const [ownedItems, setOwnedItems] = useState<string[]>(() => {
@@ -3459,6 +3472,12 @@ export default function App() {
     const token = localStorage.getItem('aplus-token')
     if (token) {
       fetch('/api/points', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ amount: 10 }) }).catch(() => {})
+    } else {
+      setGuestAnswers(n => {
+        const next = n + 1
+        if (next === 3) setShowSignupNudge(true)
+        return next
+      })
     }
   }
 
@@ -3507,6 +3526,27 @@ export default function App() {
   return (
     <div className="page">
       {showGame && <GameArcade onClose={() => setShowGame(false)} />}
+
+      {/* Guest signup nudge popup */}
+      {showSignupNudge && isGuest && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: '2rem 1.5rem', maxWidth: '340px', width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🔥</div>
+            <h2 style={{ color: '#1a3a6b', margin: '0 0 0.5rem', fontSize: '1.3rem' }}>You're on a roll!</h2>
+            <p style={{ color: '#4a6fa5', fontSize: '0.9rem', margin: '0 0 1.2rem' }}>
+              Sign up free to <strong>save your progress</strong>, track your streak, and appear on the leaderboard.
+            </p>
+            <button onClick={() => { setShowSignupNudge(false); setShowAuthPanel(true) }}
+              style={{ width: '100%', background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '12px', padding: '0.8rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', marginBottom: '0.6rem' }}>
+              Sign Up Free →
+            </button>
+            <button onClick={() => setShowSignupNudge(false)}
+              style={{ background: 'none', border: 'none', color: '#8aa0c0', fontSize: '0.85rem', cursor: 'pointer' }}>
+              Keep going without saving
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Auth slide-in panel */}
       {showAuthPanel && (
@@ -3637,6 +3677,14 @@ export default function App() {
             ))}
           </div>
 
+          {/* Guest progress warning */}
+          {isGuest && guestAnswers > 0 && (
+            <div onClick={() => setShowAuthPanel(true)} style={{ background: 'linear-gradient(135deg, #ff6b6b, #feca57)', borderRadius: '12px', padding: '0.7rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: '0.5rem' }}>
+              <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.88rem' }}>⚠️ {guestAnswers} answer{guestAnswers !== 1 ? 's' : ''} not saved — sign up to keep your progress!</span>
+              <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>Sign Up →</span>
+            </div>
+          )}
+
           {/* Points bar */}
           <div className="points-bar">
             <div className="points-info">
@@ -3747,7 +3795,7 @@ export default function App() {
         )}
 
         {/* LEADERBOARD PAGE */}
-        {navPage === 'leaderboard' && <LeaderboardPage />}
+        {navPage === 'leaderboard' && <LeaderboardPage isGuest={isGuest} onSignup={() => setShowAuthPanel(true)} />}
 
         {/* CHARACTER PAGE */}
         {navPage === 'character' && (<>
