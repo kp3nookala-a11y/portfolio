@@ -3268,7 +3268,7 @@ function AuthScreen({ onAuth }: { onAuth: (user: AuthUser, token: string) => voi
   )
 }
 
-const ADMIN_EMAIL = 'kiannookala@gmail.com'
+const ADMIN_EMAILS = ['kiannookala@gmail.com', 'satishnookala11@gmail.com']
 
 function AdminPanel({ onClose }: { onClose: () => void }) {
   const [users, setUsers] = useState<{ email: string; created_at: number; current_streak: number; last_active: string }[]>([])
@@ -3404,7 +3404,7 @@ export default function App() {
     if (!token) { setAuthLoading(false); return }
     fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json() as Promise<any>)
-      .then(d => { if (d.email) { console.log('APLUS email:', d.email, '| match:', d.email === ADMIN_EMAIL); setAuthUser({ email: d.email, streak: d.streak, displayName: d.displayName, totalPoints: d.totalPoints }) } })
+      .then(d => { if (d.email) { setAuthUser({ email: d.email, streak: d.streak, displayName: d.displayName, totalPoints: d.totalPoints }) } })
       .catch(() => {})
       .finally(() => setAuthLoading(false))
   }, [])
@@ -3679,7 +3679,7 @@ export default function App() {
         )}
       </div>
 
-      {authUser?.email?.toLowerCase().includes('kiannookala') && (
+      {authUser?.email && ADMIN_EMAILS.includes(authUser.email.toLowerCase()) && (
         <>
           {!adminClosed && <AdminPanel onClose={() => setAdminClosed(true)} />}
           {adminClosed && (
