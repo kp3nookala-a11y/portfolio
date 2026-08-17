@@ -3031,6 +3031,50 @@ type LeaderboardEntry = {
   outfit_color: string
 }
 
+function MiniLeaderboard({ onSignup }: { onSignup: () => void }) {
+  const [top3, setTop3] = useState<LeaderboardEntry[]>([])
+
+  useEffect(() => {
+    fetch('/api/leaderboard')
+      .then(r => r.json() as Promise<LeaderboardEntry[]>)
+      .then(d => setTop3(d.slice(0, 3)))
+      .catch(() => {})
+  }, [])
+
+  if (top3.length === 0) return null
+
+  const medalEmoji = ['🥇', '🥈', '🥉']
+
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.92)', borderRadius: '16px', padding: '1rem', border: '1px solid rgba(0,0,0,0.07)', marginTop: '0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.7rem' }}>
+        <div style={{ fontWeight: 800, color: '#1a3a6b', fontSize: '0.95rem' }}>🏆 Top Learners</div>
+        <button onClick={onSignup} style={{ background: 'none', border: 'none', color: '#4a7fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+          Join the leaderboard →
+        </button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+        {top3.map((e, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={{ fontSize: '1.1rem', width: '24px' }}>{medalEmoji[i]}</span>
+            <div style={{ flexShrink: 0 }}>
+              {e.char_type
+                ? <CharacterBody type={e.char_type as CharType} furColor={e.fur_color || '#f5deb3'} outfitColor={e.outfit_color || '#4a7fff'} size={32} />
+                : <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🐾</div>
+              }
+            </div>
+            <div style={{ flex: 1, fontWeight: 700, color: '#1a3a6b', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.display_name}</div>
+            <div style={{ fontWeight: 800, color: '#ff6b6b', fontSize: '0.88rem', flexShrink: 0 }}>⭐ {(e.total_points ?? 0).toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+      <button onClick={onSignup} style={{ width: '100%', marginTop: '0.8rem', background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.6rem', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' }}>
+        Sign Up Free to Compete →
+      </button>
+    </div>
+  )
+}
+
 function LeaderboardPage({ isGuest, onSignup }: { isGuest: boolean; onSignup: () => void }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -3480,7 +3524,7 @@ export default function App() {
     } else {
       setGuestAnswers(n => {
         const next = n + 1
-        if (next === 3) setShowSignupNudge(true)
+        if (next === 1) setShowSignupNudge(true)
         return next
       })
     }
@@ -3657,8 +3701,8 @@ export default function App() {
       <div style={{ position: 'fixed', top: '0.7rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.7rem', zIndex: 200 }}>
         {isGuest ? (
           <>
-            <div style={{ background: 'rgba(255,255,255,0.92)', border: '1.5px solid #ffb300', borderRadius: '20px', padding: '0.35rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, color: '#7a5000' }}>
-              👀 Guest mode — limited access
+            <div style={{ background: 'rgba(255,255,255,0.92)', border: '1.5px solid #64ffb4', borderRadius: '20px', padding: '0.35rem 0.9rem', fontSize: '0.8rem', fontWeight: 600, color: '#1a6b3a' }}>
+              👋 Try free — no account needed
             </div>
             <button onClick={() => setShowAuthPanel(true)} style={{ background: '#4a7fff', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.4rem 1rem', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}>
               Sign Up / Log In
@@ -3760,6 +3804,9 @@ export default function App() {
               </button>
             ))}
           </div>
+
+          {/* Social proof + mini leaderboard for guests */}
+          {isGuest && <MiniLeaderboard onSignup={() => setShowAuthPanel(true)} />}
 
           {/* Guest progress warning */}
           {isGuest && guestAnswers > 0 && (
